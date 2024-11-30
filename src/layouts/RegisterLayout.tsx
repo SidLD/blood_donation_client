@@ -17,7 +17,7 @@ const RegisterLayout: React.FC<RegisterPageProps> = () => {
         {/* Top right shape */}
         <div className="absolute right-0 top-0 w-[20%] h-[35%] bg-[#FF0000] rounded-bl-full" />
       </div>
-      <div className="z-10 flex flex-col w-full max-w-4xl mx-4 overflow-hidden bg-white rounded-lg shadow-xl md:flex-row bg-opacity-90">
+      <div className="z-10 flex flex-col w-full max-w-4xl mx-4 overflow-hidden bg-transparent rounded-lg shadow-xl md:flex-row bg-opacity-90">
         <Outlet />
       </div>
     </div>

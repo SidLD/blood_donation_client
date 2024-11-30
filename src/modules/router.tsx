@@ -15,6 +15,7 @@ import { DonorSignIn } from "@/pages/donor/sign-in"
 import { AdminDonorList } from "@/pages/admin/donor-list"
 import { AdminBloodSupply } from "@/pages/admin/blood-supply"
 import { AdminCalendar } from "@/pages/admin/calendar"
+import EventsPage from "@/pages/admin/event"
 const routers = createBrowserRouter(
     createRoutesFromElements(
         <>
@@ -38,6 +39,7 @@ const routers = createBrowserRouter(
                 <Route  path="calendar"  element={<AdminCalendar />}/>
                 <Route  path="donor-list"  element={<AdminDonorList />}/>
                 <Route  path="blood-supply"  element={<AdminBloodSupply />}/>
+                <Route  path="events"  element={<EventsPage />}/>
             </Route>
             <Route path="/donor" element={<PrivateLayout/>}>
                 <Route  index  element ={ <ContributorDashboard /> }/>
