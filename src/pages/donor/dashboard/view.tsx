@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Filter } from 'lucide-react'
+import { Filter, LogOut } from 'lucide-react'
 import { format } from 'date-fns'
 import { io, Socket } from 'socket.io-client'
 import { Checkbox } from "@/components/ui/checkbox"
+import { auth } from '@/lib/services'
+import { useToast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
 
 interface Notification {
   id: string
@@ -38,6 +41,7 @@ export default function NotificationsPage() {
   const [showFilter, setShowFilter] = useState(false)
   const [selectedSources, setSelectedSources] = useState<Set<string>>(new Set())
   const [socket, setSocket] = useState<Socket | null>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
     // Simulate API fetch
@@ -105,8 +109,33 @@ export default function NotificationsPage() {
     setSelectedSources(newSources)
   }
 
+  const handleLogout = () => {
+    try {
+      auth.clear()
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      })
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 1000)
+    } catch (error) {
+      
+    }
+  }
+
   return (
-    <div className="min-h-full bg-[#4A1515]">
+    <div className="min-h-full min-w-full bg-[#4A1515]">
+      <div className='relative flex justify-end w-full'>
+      <Button 
+          variant="ghost" 
+          className="mt-2 mr-5 text-white hover:bg-white/10"
+          onClick={handleLogout}
+        >
+          <LogOut className="w-5 h-5 mr-2" />
+          Logout
+        </Button>
+      </div>
       <div className="max-w-3xl p-4 mx-auto">
         <div className="bg-[#3D0000] rounded-lg shadow-lg overflow-hidden">
           {/* Header */}

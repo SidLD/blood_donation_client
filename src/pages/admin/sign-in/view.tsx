@@ -19,7 +19,6 @@ import { useToast } from '@/hooks/use-toast'
 import { loginAdmin } from '@/lib/api'
 import { AdminType } from '@/types/interface'
 import { auth } from '@/lib/services'
-import { useNavigate } from 'react-router-dom'
 
 const loginSchema = z.object({
   username: z.string().min(2, {
@@ -35,7 +34,6 @@ const loginSchema = z.object({
 
 const AdminSignInView: React.FC = () => {
   const { toast } = useToast()
-  const navigate = useNavigate()
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -67,9 +65,9 @@ const AdminSignInView: React.FC = () => {
   }
 
   return (
-    <div className="grid w-full h-full rounded-lg lg:grid-cols-2">
+    <div className="relative grid w-full h-full rounded-lg lg:grid-cols-2">
       <div className="bg-[#3D0000] p-8 lg:p-12 flex flex-col min-h-[600px]">
-        <div className="flex items-center text-white/90">
+        <div className="absolute flex items-center left-2 top-1 text-white/90">
           <img width={60} src={logo} alt="logo" className="brightness-200" />
         </div>
         
@@ -149,7 +147,7 @@ const AdminSignInView: React.FC = () => {
       </div>
       
       {/* Right side panel - can be removed or modified based on your needs */}
-      <div className="hidden lg:flex bg-[#F5F5F5] p-12 flex-col items-center justify-center text-center">
+      <div className=" lg:flex bg-[#F5F5F5] p-12 flex-col items-center justify-center text-center">
         <h2 className="mb-2 text-2xl font-bold text-[#3D0000]">
           New Here?
         </h2>
@@ -160,7 +158,7 @@ const AdminSignInView: React.FC = () => {
           variant="outline"
           className="border-[#3D0000] text-[#3D0000] hover:bg-[#3D0000] rounded-full hover:text-white"
           onClick={() => {
-            window.location.href = `${auth.getRole().toLowerCase()}`
+            window.location.href = `/register/admin`
             }}
           >
           Register

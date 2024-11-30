@@ -52,7 +52,7 @@ const AdminSignUpView: React.FC = () => {
   const onSubmit = async (values: z.infer<typeof adminSchema>) => {
     // Simulating an API call
     await registerAdmin(values as AdminType)
-    .then(({data}: any) => {
+    .then(() => {
       toast({
         title: "Registration Successful",
         description: "You will be redirected to the login shortly.",

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { dataHeader } from "./helper";
-import {  ApplicationType, EventType, BloodSupplyType, NotificationType, DonorType, AdminType, DonorLoginType } from "../types/interface";
+import {  ApplicationType, EventType, BloodSupplyType, DonorType, AdminType, DonorLoginType } from "../types/interface";
 
 // Get the API URL from environment variable
 console.log(import.meta.env.VITE_API_URL);
@@ -140,11 +140,10 @@ export const getBloodSupplies = () => {
   });
 };
 
-// **Notification API**
-export const createNotification = (data: NotificationType) => {
+export const getNotifications = () => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/notifications`, data, dataHeader())
+      .get(`${import.meta.env.VITE_API_URL}/notifications`, dataHeader())
       .then((res: any) => {
         resolve(res);
       })
@@ -154,10 +153,68 @@ export const createNotification = (data: NotificationType) => {
   });
 };
 
-export const getNotifications = () => {
+// **Guest Donor
+// Create a new guest donor
+export const createGuestDonor = (data: any) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/notifications`, dataHeader())
+      .post(`${import.meta.env.VITE_API_URL}/guest-donor`, data, dataHeader())  // Endpoint for creating a donor
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Get all guest donors
+export const getGuestDonors = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/guest-donors`, dataHeader())  // Endpoint to fetch all donors
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Get a single guest donor by ID
+export const getGuestDonorById = (id: string) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/guest-donors/${id}`, dataHeader())  // Endpoint for fetching a single donor by ID
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Update a guest donor by ID
+export const updateGuestDonor = (id: string, data: any) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/guest-donors/${id}`, data, dataHeader())  // Endpoint for updating a donor
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Delete a guest donor by ID
+export const deleteGuestDonor = (id: string) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .delete(`${import.meta.env.VITE_API_URL}/guest-donors/${id}`, dataHeader())  // Endpoint for deleting a donor
       .then((res: any) => {
         resolve(res);
       })

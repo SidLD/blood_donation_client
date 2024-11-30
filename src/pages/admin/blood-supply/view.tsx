@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { Canvas, useFrame, ThreeElements } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -20,15 +20,15 @@ const dummyBloodData: BloodSupply[] = [
 
 const PieSlice: React.FC<{ data: BloodSupply; startAngle: number; endAngle: number }> = ({ data, startAngle, endAngle }) => {
   const meshRef = useRef<THREE.Mesh>(null)
-  const [hovered, setHovered] = useState(false)
+  const [, setHovered] = useState(false)
 
   useFrame(() => {
     if (meshRef.current) {
-      meshRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(
-        meshRef.current.material.emissiveIntensity,
-        hovered ? 0.5 : 0,
-        0.1
-      )
+      // meshRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(
+      //   meshRef.current.material.emissiveIntensity,
+      //   hovered ? 0.5 : 0,
+      //   0.1
+      // )
     }
   })
 
@@ -88,7 +88,7 @@ const PieChart3D: React.FC<{ data: BloodSupply[] }> = ({ data }) => {
       <ambientLight intensity={0.5} />
       <pointLight position={[0, 5, 0]} intensity={0.5} />
       <group rotation={[-Math.PI / 2, 0, 0]}>
-        {data.map((item, index) => {
+        {data.map((item, _index) => {
           const angle = (item.percentage / totalPercentage) * Math.PI * 2
           const endAngle = startAngle + angle
           const slice = (
@@ -132,6 +132,15 @@ const BloodSupplyPage: React.FC = () => {
 
   return (
     <div className="min-h-full min-w-full bg-[#F8EFEF]">
+      <div className="relative top-4 left-8">
+          <a
+            href="/admin"
+            className="flex items-center text-[#4A1515] hover:opacity-80"
+          >
+            <ArrowLeft className="w-6 h-6 mr-2" />
+            <span>Back to Admin</span>
+          </a>
+        </div>
       <div className="max-w-5xl p-8 mx-auto">
         <h1 className="text-3xl font-bold text-[#4A1515] mb-8">
           Blood Supply Levels
@@ -166,17 +175,6 @@ const BloodSupplyPage: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Back Button */}
-        <div className="relative bottom-8 left-8">
-          <a
-            href="/admin"
-            className="flex items-center text-[#4A1515] hover:opacity-80"
-          >
-            <ArrowLeft className="w-6 h-6 mr-2" />
-            <span>Back to Admin</span>
-          </a>
         </div>
       </div>
     </div>
