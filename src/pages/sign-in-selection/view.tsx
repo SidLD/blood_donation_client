@@ -1,7 +1,14 @@
 import { User } from 'lucide-react'
 import logo from '../../assets/logo.png'
+import { useEffect } from 'react'
+import { auth } from '@/lib/services'
 
 const SignInSelectionView: React.FC = () => {
+    useEffect(() => {
+        if(auth.getToken()){
+            window.location.href = `${auth.getRole().toLowerCase()}`
+        }
+    }, [])
     return (
         <div className="w-full h-full bg-[#3D0000] rounded-3xl p-2 shadow-2xl flex-col items-center ">
             <div className="z-20 flex items-center text-white/90">

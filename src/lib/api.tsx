@@ -1,191 +1,167 @@
-import axios from "axios";;
+import axios from "axios";
 import { dataHeader } from "./helper";
-import { RegisterUserType, LoginType, FoodWasteType } from "./interface";
-console.log(import.meta.env.VITE_API_URL)
-export const login = (data:LoginType) => {
-    return new Promise((resolve, reject) => {
-      axios
-        .post(`${import.meta.env.VITE_API_URL}/login`, data)
-        .then((res:any) => {
-          resolve(res);
-        })
-        .catch((err:any) => {
-          reject(err);
-        });
-    });
-};
+import {  ApplicationType, EventType, BloodSupplyType, NotificationType, DonorType, AdminType, DonorLoginType } from "../types/interface";
 
-export const register = (data:RegisterUserType) => {
+// Get the API URL from environment variable
+console.log(import.meta.env.VITE_API_URL);
+
+// **Admin Authentication API**
+export const loginAdmin = (data: AdminType) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/register`, data, dataHeader())
-      .then((res:any) => {
+      .post(`${import.meta.env.VITE_API_URL}/login-admin`, data)
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         reject(err);
       });
   });
 };
 
-export const updateUser = (data:any) => {
+export const registerAdmin = (data: AdminType) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/user/status`, data, dataHeader())
-      .then((res:any) => {
+      .post(`${import.meta.env.VITE_API_URL}/register-admin`, data, dataHeader())
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         reject(err);
       });
   });
 };
 
-export const getUsers = (data:any) => {
-    return new Promise((resolve, reject) => {
-      axios
-        .get(`${import.meta.env.VITE_API_URL}/users`, {
-            data, ...dataHeader()
-        })
-        .then((res:any) => {
-          resolve(res);
-        })
-        .catch((err:any) => {
-          reject(err);
-        });
-    });
-};
-
-export const deleteUser = (data:any) => {
-    return new Promise((resolve, reject) => {
-      axios
-        .delete(`${import.meta.env.VITE_API_URL}/user`, {
-            data,
-            ...dataHeader()
-        })
-        .then((res:any) => {
-          resolve(res);
-        })
-        .catch((err:any) => {
-          reject(err);
-        });
-    });
-};
-
-
-//Food Waste
-export const createRecord = (data:FoodWasteType) => {
+// **Donor Authentication API**
+export const loginDonor = (data: DonorLoginType) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/food-waste`, data, dataHeader())
-      .then((res:any) => {
+      .post(`${import.meta.env.VITE_API_URL}/login-donor`, data)
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         reject(err);
       });
   });
 };
 
-  
-export const getRecords = (data:any) => {
+export const registerDonor = (data: DonorType) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/food-waste`, {
-          data, ...dataHeader()
-      })
-      .then((res:any) => {
+      .post(`${import.meta.env.VITE_API_URL}/register-donor`, data, dataHeader())
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         reject(err);
       });
   });
 };
 
-export const updateRecordStatus = (id: string, data:any) => {
+// **Application API**
+export const createApplication = (data: ApplicationType) => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/food-waste/${id}/status`, data, dataHeader())
-      .then((res:any) => {
+      .post(`${import.meta.env.VITE_API_URL}/applications`, data, dataHeader())
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         reject(err);
       });
   });
 };
 
-export const deleteRecord = (data:{recordId: string}) => {
+export const getApplications = () => {
   return new Promise((resolve, reject) => {
     axios
-      .delete(`${import.meta.env.VITE_API_URL}/food-waste`, {
-        data, ...dataHeader()
-      })
-      .then((res:any) => {
+      .get(`${import.meta.env.VITE_API_URL}/applications`, dataHeader())
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         reject(err);
       });
   });
 };
 
-//Stat
-export const getStat = (data:any) => {
+// **Event API**
+export const createEvent = (data: EventType) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/stat`, {
-          data, ...dataHeader()
-      })
-      .then((res:any) => {
+      .post(`${import.meta.env.VITE_API_URL}/events`, data, dataHeader())
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         reject(err);
       });
   });
 };
 
-export const getContributorStat = (data:any) => {
+export const getEvents = () => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/contributor/stat`, {
-          data, ...dataHeader()
-      })
-      .then((res:any) => {
+      .get(`${import.meta.env.VITE_API_URL}/events`, dataHeader())
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         reject(err);
       });
   });
 };
 
-//Setting
-export const getUserSetting = (data:any) => {
+// **Blood Supply API**
+export const createBloodSupply = (data: BloodSupplyType) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/user/setting`, {
-          data, ...dataHeader()
-      })
-      .then((res:any) => {
+      .post(`${import.meta.env.VITE_API_URL}/blood-supplies`, data, dataHeader())
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
         reject(err);
       });
   });
 };
 
-export const updateUserSetting = (data:any) => {
+export const getBloodSupplies = () => {
   return new Promise((resolve, reject) => {
     axios
-      .put(`${import.meta.env.VITE_API_URL}/user/setting`, data, dataHeader())
-      .then((res:any) => {
+      .get(`${import.meta.env.VITE_API_URL}/blood-supplies`, dataHeader())
+      .then((res: any) => {
         resolve(res);
       })
-      .catch((err:any) => {
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// **Notification API**
+export const createNotification = (data: NotificationType) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/notifications`, data, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const getNotifications = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/notifications`, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
         reject(err);
       });
   });

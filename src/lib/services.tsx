@@ -5,10 +5,10 @@ export const auth = {
     },
     storeToken(token: string) {
       this.clear();
-      localStorage.setItem('trash_token', `Bearer ${token}`);
+      localStorage.setItem('blood_token', `Bearer ${token}`);
     },
     getToken() {
-      return localStorage.getItem('trash_token');
+      return localStorage.getItem('blood_token');
     },
     getExpiration() {
       const token = this.getToken();
@@ -42,7 +42,7 @@ export const auth = {
     },
     
     clear() {
-      localStorage.removeItem('trash_token')
+      localStorage.removeItem('blood_token')
       window.location.reload();
     },
   };

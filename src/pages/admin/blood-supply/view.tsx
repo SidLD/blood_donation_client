@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { Canvas, useThree } from '@react-three/fiber'
+import { Canvas, useFrame, ThreeElements } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -18,79 +18,92 @@ const dummyBloodData: BloodSupply[] = [
   { type: 'AB+', percentage: 28, color: '#2D0C0C' }
 ]
 
-const PieChart3D: React.FC<{ data: BloodSupply[] }> = ({ data }) => {
-  const groupRef = useRef<THREE.Group>(null)
-  const { camera } = useThree()
+const PieSlice: React.FC<{ data: BloodSupply; startAngle: number; endAngle: number }> = ({ data, startAngle, endAngle }) => {
+  const meshRef = useRef<THREE.Mesh>(null)
+  const [hovered, setHovered] = useState(false)
 
-  useEffect(() => {
-    if (camera) {
-      // Set camera position for the tilted view
-      camera.position.set(-2, 2, 4)
-      camera.lookAt(0, 0, 0)
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(
+        meshRef.current.material.emissiveIntensity,
+        hovered ? 0.5 : 0,
+        0.1
+      )
     }
-  }, [camera])
+  })
 
-  const totalValue = data.reduce((sum, item) => sum + item.percentage, 0)
+  const shape = new THREE.Shape()
+  shape.moveTo(0, 0)
+  shape.arc(0, 0, 1, startAngle, endAngle, false)
+  shape.lineTo(0, 0)
+
+  const extrudeSettings = {
+    steps: 1,
+    depth: 0.1,
+    bevelEnabled: false,
+  }
+
+  const midAngle = (startAngle + endAngle) / 2
+  const labelPosition = new THREE.Vector3(
+    Math.cos(midAngle) * 0.7,
+    Math.sin(midAngle) * 0.7,
+    0.06
+  )
+
+  return (
+    <group>
+      <mesh
+        ref={meshRef}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
+        <extrudeGeometry args={[shape, extrudeSettings]} />
+        <meshPhongMaterial 
+          color={data.color} 
+          emissive={data.color}
+          emissiveIntensity={0}
+          shininess={100}
+        />
+      </mesh>
+      <Text
+        position={labelPosition}
+        fontSize={0.1}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        {`${data.type}: ${data.percentage}%`}
+      </Text>
+    </group>
+  )
+}
+
+const PieChart3D: React.FC<{ data: BloodSupply[] }> = ({ data }) => {
+  const totalPercentage = data.reduce((sum, item) => sum + item.percentage, 0)
   let startAngle = 0
 
   return (
-    <group ref={groupRef} rotation={[0, 0, 0]}>
-      {data.map((item, index) => {
-        const angle = (item.percentage / totalValue) * Math.PI * 2
-        const endAngle = startAngle + angle
-        const midAngle = startAngle + angle / 2
-
-        // Calculate position for separated segments
-        const separation = 0.1
-        const offsetX = Math.cos(midAngle) * separation
-        const offsetY = Math.sin(midAngle) * separation
-
-        const shape = new THREE.Shape()
-        shape.moveTo(0, 0)
-        shape.arc(0, 0, 2, startAngle, endAngle, false)
-        shape.lineTo(0, 0)
-
-        const extrudeSettings = {
-          depth: 0.5,
-          bevelEnabled: true,
-          bevelSegments: 4,
-          steps: 1,
-          bevelSize: 0.05,
-          bevelThickness: 0.05
-        }
-
-        // Calculate label position
-        const labelRadius = 1.2
-        const labelX = Math.cos(midAngle) * labelRadius + offsetX
-        const labelY = Math.sin(midAngle) * labelRadius + offsetY
-        const labelZ = 0.3
-
-        startAngle = endAngle
-
-        return (
-          <group key={index} position={[offsetX, offsetY, 0]}>
-            <mesh>
-              <extrudeGeometry args={[shape, extrudeSettings]} />
-              <meshStandardMaterial 
-                color={item.color} 
-                roughness={0.5}
-                metalness={0.2}
-              />
-            </mesh>
-            <Text
-              position={[labelX, labelY, labelZ]}
-              fontSize={0.5}
-              color="white"
-              anchorX="center"
-              anchorY="middle"
-              rotation={[-Math.PI / 4, 0, 0]}
-            >
-              {`${item.percentage}%`}
-            </Text>
-          </group>
-        )
-      })}
-    </group>
+    <Canvas camera={{ position: [0, 2, 0], fov: 50, up: [0, 0, 1] }}>
+      <ambientLight intensity={0.5} />
+      <pointLight position={[0, 5, 0]} intensity={0.5} />
+      <group rotation={[-Math.PI / 2, 0, 0]}>
+        {data.map((item, index) => {
+          const angle = (item.percentage / totalPercentage) * Math.PI * 2
+          const endAngle = startAngle + angle
+          const slice = (
+            <PieSlice
+              key={item.type}
+              data={item}
+              startAngle={startAngle}
+              endAngle={endAngle}
+            />
+          )
+          startAngle = endAngle
+          return slice
+        })}
+      </group>
+    </Canvas>
   )
 }
 
@@ -111,14 +124,14 @@ const BloodSupplyPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F8EFEF] p-8">
+      <div className="min-h-full min-w-full bg-[#F8EFEF] p-8">
         <div className="text-center text-[#4A1515]">Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-full bg-[#F8EFEF]">
+    <div className="min-h-full min-w-full bg-[#F8EFEF]">
       <div className="max-w-5xl p-8 mx-auto">
         <h1 className="text-3xl font-bold text-[#4A1515] mb-8">
           Blood Supply Levels
@@ -127,12 +140,7 @@ const BloodSupplyPage: React.FC = () => {
         <div className="grid items-center gap-8 mb-12 md:grid-cols-2">
           {/* 3D Pie Chart */}
           <div className="h-[400px] w-full">
-            <Canvas>
-              <ambientLight intensity={0.7} />
-              <pointLight position={[10, 10, 10]} intensity={0.5} />
-              <pointLight position={[-10, -10, -10]} intensity={0.3} />
-              <PieChart3D data={bloodData} />
-            </Canvas>
+            <PieChart3D data={bloodData} />
           </div>
 
           {/* Progress Bars */}

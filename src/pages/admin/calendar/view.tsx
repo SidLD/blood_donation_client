@@ -179,7 +179,7 @@ export default function HospitalCalendar() {
           )
         })}
       </div>
-      <div className="absolute bottom-4 left-4">
+      <div className="absolute top-5 left-4">
         <a href="/admin" className="flex items-center text-[#4A1515] hover:text-red-600">
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Admin
@@ -264,7 +264,7 @@ export default function HospitalCalendar() {
   }
 
   return (
-    <div className="bg-[#3D0000] flex flex-col min-h-[600px] h-full">
+    <div className="bg-[#3D0000] flex flex-col w-full h-full">
       {selectedDate ? renderDayView() : renderCalendarView()}
     </div>
   )

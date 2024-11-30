@@ -31,10 +31,8 @@ export const getRoleRoutePath = ():string => {
     switch (role) {
         case "ADMIN":
             return "/admin/"
-            break;
         default:
-            return "/contributor/"
-            break;
+            return "/donor/"
     }
 }
 

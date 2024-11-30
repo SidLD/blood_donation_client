@@ -18,6 +18,10 @@ import { AdminCalendar } from "@/pages/admin/calendar"
 const routers = createBrowserRouter(
     createRoutesFromElements(
         <>
+            <Route path="/" element={<PublicLayout/>}>
+                <Route  index element={<Home />} />
+                <Route  path="/about-us" element={<AboutUs />} />
+            </Route>  
             <Route path="/register" element={<RegisterLayout/>}>
                 <Route index element={ <SignUpSelection />} />
                 <Route  path="admin" element={<AdminSignUp />} />
@@ -28,12 +32,7 @@ const routers = createBrowserRouter(
                 <Route index element={ <SignInSelection />} />
                 <Route  path="admin" element={<AdminSignIn />} />
                 <Route  path="donor" element={<DonorSignIn />} />
-            </Route> 
-            <Route element={<PublicLayout/>}>
-                <Route index path="/" element={<Home />} />
-                <Route  path="/about-us" element={<AboutUs />} />
-                <Route  path="*" element={<Navigate to="/" replace />} />
-            </Route>   
+            </Route>  
             <Route path="/admin" element={<PrivateLayout/>}>
                 <Route  index  element={<AdminDashboard />}/>
                 <Route  path="calendar"  element={<AdminCalendar />}/>
@@ -43,6 +42,7 @@ const routers = createBrowserRouter(
             <Route path="/donor" element={<PrivateLayout/>}>
                 <Route  index  element ={ <ContributorDashboard /> }/>
             </Route>
+            <Route  path="*" element={<Navigate to="/" replace />} />
         </>
     )
 )

@@ -70,7 +70,7 @@ export default function DonorsPage() {
   }, [searchQuery, donorData, view])
 
   return (
-    <div className="min-h-full bg-[#4A1515]">
+    <div className="min-h-full min-w-full bg-[#4A1515]">
       <div className="max-w-6xl px-4 py-6 mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
