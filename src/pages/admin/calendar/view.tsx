@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { CalendarData } from '@/types/calendar'
 
 export const dummyCalendarData: CalendarData = {
-    '2024-01-04': {
+    '2024-12-04': {
       date: 4,
       bloodUnits: 3,
       appointments: [
@@ -35,12 +35,12 @@ export const dummyCalendarData: CalendarData = {
         }
       ]
     },
-    '2024-01-10': {
+    '2024-12-10': {
       date: 10,
       bloodUnits: 8,
       appointments: []
     },
-    '2024-01-13': {
+    '2024-12-13': {
       date: 13,
       bloodUnits: 5,
       appointments: []
@@ -48,7 +48,7 @@ export const dummyCalendarData: CalendarData = {
   }
 
 export default function HospitalCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 0, 1))
+  const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [calendarData, setCalendarData] = useState<CalendarData>({})
   const [isLoading, setIsLoading] = useState(false)

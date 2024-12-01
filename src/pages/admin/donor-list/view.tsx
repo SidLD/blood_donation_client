@@ -1,7 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Search } from 'lucide-react'
+import { ArrowLeft, Search, FileText } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
+interface DonationRecord {
+  date: string
+  location: string
+  amount: number // in liters
+}
 
 interface Donor {
   id: string
@@ -9,6 +23,7 @@ interface Donor {
   bloodType: string
   lastDonated?: string
   firstDonated?: string
+  records: DonationRecord[]
 }
 
 interface DonorData {
@@ -18,14 +33,64 @@ interface DonorData {
 
 const dummyDonorData: DonorData = {
   certified: [
-    { id: '8501539', name: 'Juan Dela Cruz', bloodType: 'AB+', lastDonated: '07/15/2024' },
-    { id: '7859887', name: 'Pedro Penduko', bloodType: 'B+', lastDonated: '09/25/2024' },
-    { id: '9875666', name: 'Hannah Montana', bloodType: 'AB-', lastDonated: '05/29/2024' }
+    { 
+      id: '8501539', 
+      name: 'Juan Dela Cruz', 
+      bloodType: 'AB+', 
+      lastDonated: '07/15/2024',
+      records: [
+        { date: '07/15/2024', location: 'Manila City Hospital', amount: 0.45 },
+        { date: '01/10/2024', location: 'Red Cross Center', amount: 0.5 },
+      ]
+    },
+    { 
+      id: '7859887', 
+      name: 'Pedro Penduko', 
+      bloodType: 'B+', 
+      lastDonated: '09/25/2024',
+      records: [
+        { date: '09/25/2024', location: 'Quezon City General Hospital', amount: 0.5 },
+      ]
+    },
+    { 
+      id: '9875666', 
+      name: 'Hannah Montana', 
+      bloodType: 'AB-', 
+      lastDonated: '05/29/2024',
+      records: [
+        { date: '05/29/2024', location: 'Makati Medical Center', amount: 0.45 },
+        { date: '11/15/2023', location: `St. Luke's Medical Center`, amount: 0.5 },
+      ]
+    }
   ],
   new: [
-    { id: '7988561', name: 'Juan Dela Cruz', bloodType: 'AB-', firstDonated: '09/05/2024' },
-    { id: '1165794', name: 'Juan Dela Cruz', bloodType: 'O+', firstDonated: '08/05/2024' },
-    { id: '1566787', name: 'Juan Dela Cruz', bloodType: 'B+', firstDonated: '09/18/2024' }
+    { 
+      id: '7988561', 
+      name: 'Maria Clara', 
+      bloodType: 'AB-', 
+      firstDonated: '09/05/2024',
+      records: [
+        { date: '09/05/2024', location: 'Philippine General Hospital', amount: 0.45 },
+      ]
+    },
+    { 
+      id: '1165794', 
+      name: 'Jose Rizal', 
+      bloodType: 'O+', 
+      firstDonated: '08/05/2024',
+      records: [
+        { date: '08/05/2024', location: 'Veterans Memorial Medical Center', amount: 0.5 },
+      ]
+    },
+    { 
+      id: '1566787', 
+      name: 'Andres Bonifacio', 
+      bloodType: 'B+', 
+      firstDonated: '09/18/2024',
+      records: [
+        { date: '09/18/2024', location: 'East Avenue Medical Center', amount: 0.45 },
+      ]
+    }
   ]
 }
 
@@ -37,6 +102,8 @@ export default function DonorsPage() {
   const [donorData, setDonorData] = useState<DonorData>({ certified: [], new: [] })
   const [filteredDonors, setFilteredDonors] = useState<Donor[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [showRecordsModal, setShowRecordsModal] = useState(false)
+  const [selectedDonor, setSelectedDonor] = useState<Donor | null>(null)
 
   // Simulate API fetch
   useEffect(() => {
@@ -69,6 +136,11 @@ export default function DonorsPage() {
     setFilteredDonors(filtered)
   }, [searchQuery, donorData, view])
 
+  const handleViewRecords = (donor: Donor) => {
+    setSelectedDonor(donor)
+    setShowRecordsModal(true)
+  }
+
   return (
     <div className="min-h-full min-w-full bg-[#4A1515]">
       <div className="max-w-6xl px-4 py-6 mx-auto">
@@ -79,12 +151,12 @@ export default function DonorsPage() {
             className="flex items-center text-white hover:opacity-80"
           >
             <ArrowLeft className="w-6 h-6 mr-2" />
-            <span className="text-xl">Certified Donors</span>
+            <span className="text-xl">Donors</span>
           </a>
         </div>
 
         {/* Tabs */}
-        <div className="flex mb-6">
+        <div className="flex">
           <button
             onClick={() => setView('certified')}
             className={`px-6 py-2 text-xl rounded-t-lg ${
@@ -99,8 +171,8 @@ export default function DonorsPage() {
             onClick={() => setView('new')}
             className={`px-6 py-2 text-xl rounded-t-lg ${
               view === 'new'
-                ? 'bg-[#4A1515] text-white font-semibold'
-                : 'bg-[#D88E8E] text-[#4A1515]'
+                ? 'bg-[#D88E8E] text-[#4A1515] font-semibold'
+                : 'bg-[#4A1515] text-white'
             }`}
           >
             New Donors
@@ -108,7 +180,7 @@ export default function DonorsPage() {
         </div>
 
         {/* Content Area */}
-        <div className={`rounded-lg ${view === 'certified' ? 'bg-[#D88E8E]' : 'bg-[#4A1515]'}`}>
+        <div className="bg-[#D88E8E] ">
           <div className="p-6">
             {/* Search Bar */}
             <div className="relative mb-8">
@@ -133,18 +205,19 @@ export default function DonorsPage() {
                     <th className="px-4 py-2">
                       {view === 'certified' ? 'Last Donated' : 'First Donated'}
                     </th>
+                    <th className="px-4 py-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {isLoading ? (
                     <tr>
-                      <td colSpan={4} className="py-8 text-center text-white">
+                      <td colSpan={5} className="py-8 text-center text-white">
                         Loading...
                       </td>
                     </tr>
                   ) : filteredDonors.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-8 text-center text-white">
+                      <td colSpan={5} className="py-8 text-center text-white">
                         No donors found
                       </td>
                     </tr>
@@ -157,6 +230,16 @@ export default function DonorsPage() {
                         <td className="px-4 py-2">
                           {view === 'certified' ? donor.lastDonated : donor.firstDonated}
                         </td>
+                        <td className="px-4 py-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewRecords(donor)}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            View Records
+                          </Button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -166,6 +249,40 @@ export default function DonorsPage() {
           </div>
         </div>
       </div>
+
+      {/* Records Modal */}
+      <Dialog open={showRecordsModal} onOpenChange={setShowRecordsModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Donation Records</DialogTitle>
+            <DialogDescription>
+              {selectedDonor ? `${selectedDonor.name} (ID: ${selectedDonor.id})` : ''}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedDonor && (
+            <div className="mt-4">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left">
+                    <th className="px-4 py-2">Date</th>
+                    <th className="px-4 py-2">Location</th>
+                    <th className="px-4 py-2">Amount (L)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedDonor.records.map((record, index) => (
+                    <tr key={index} className="hover:bg-gray-100">
+                      <td className="px-4 py-2">{record.date}</td>
+                      <td className="px-4 py-2">{record.location}</td>
+                      <td className="px-4 py-2">{record.amount.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

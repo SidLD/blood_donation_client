@@ -53,12 +53,13 @@ export interface DonorType {
   }
   
   export interface EventType {
-    _id: string;
-    path: string;
+    _id?: string;
     title: string;
     description: string;
-    img: IimgType;
-    user: AdminType;
+    date: string;
+    imgUrl: string;
+    location: string;
+    user?: AdminType
   }
   
   export interface AdminType {

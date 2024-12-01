@@ -90,7 +90,7 @@ export const getApplications = () => {
 export const createEvent = (data: EventType) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/events`, data, dataHeader())
+      .post(`${import.meta.env.VITE_API_URL}/event`, data, dataHeader())
       .then((res: any) => {
         resolve(res);
       })
@@ -112,7 +112,33 @@ export const getEvents = () => {
       });
   });
 };
+// Update an Event by ID
+export const updateEvent = (id: string, data: EventType) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/event/${id}`, data, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
 
+// Delete an Event by ID
+export const deleteEvent = (id: string) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .delete(`${import.meta.env.VITE_API_URL}/event/${id}`, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
 // **Blood Supply API**
 export const createBloodSupply = (data: BloodSupplyType) => {
   return new Promise((resolve, reject) => {
