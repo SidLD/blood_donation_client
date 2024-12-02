@@ -14,11 +14,20 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import logo from '../../../assets/logo.png'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
 import { registerDonor } from '@/lib/api'
 import { type DonorType } from '@/types/interface'
+
+const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as const
 
 const donorSchema = z.object({
   username: z.string().min(2, {
@@ -36,6 +45,9 @@ const donorSchema = z.object({
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
   }),
+  bloodType: z.enum(bloodTypes, {
+    required_error: "Please select a blood type.",
+  }),
 })
 
 const DonorSignUpView: React.FC = () => {
@@ -50,6 +62,7 @@ const DonorSignUpView: React.FC = () => {
       cellphoneNumber: "",
       donorId: "",
       password: "",
+      bloodType: undefined,
     },
   })
 
@@ -73,7 +86,7 @@ const DonorSignUpView: React.FC = () => {
   return (
     <div className="grid w-full h-full rounded-lg lg:grid-cols-2">
       <div className="bg-[#3D0000] p-4 lg:p-6 flex flex-col lg:min-h-[25rem]">
-        <div className="z-20 flex items-center  text-white/90">
+        <div className="z-20 flex items-center text-white/90">
           <img width={60} src={logo} alt="logo" />
         </div>
         
@@ -162,6 +175,29 @@ const DonorSignUpView: React.FC = () => {
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="bloodType"
+              render={({ field }) => (
+                <FormItem>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="bg-white border-none h-12 text-[#3D0000] placeholder:text-[#3D0000]/70">
+                        <SelectValue placeholder="Select Blood Type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {bloodTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

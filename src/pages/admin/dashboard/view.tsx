@@ -65,7 +65,7 @@ export default function AdminDashboard() {
             className="flex flex-col items-center p-4 text-white transition-colors rounded-lg hover:bg-white/5 group"
           >
               <img src={bloodicon} className="relative mb-4 w-28 h-28" />
-            <span className="w-full text-xl font-semibold text-center">Blood Supply</span>
+            <span className="w-full text-xl font-semibold text-center">Transactions</span>
           </a>
 
           <a
