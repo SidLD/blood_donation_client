@@ -1,4 +1,5 @@
 import DonorSignUpView from "./view"
-export const DonorSignUp = () => {
+const DonorSignUp = () => {
   return <DonorSignUpView />
 }
+export default DonorSignUp

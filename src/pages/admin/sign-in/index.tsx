@@ -1,4 +1,5 @@
 import AdminSignUpForm from "./view"
-export const AdminSignIn = () => {
+const AdminSignIn = () => {
   return <AdminSignUpForm />
 }
+export default AdminSignIn

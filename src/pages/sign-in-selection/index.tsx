@@ -1,5 +1,6 @@
 import SignUpSelectionView from "./view"
 
-export const SignInSelection = () => {
+ const SignInSelection = () => {
   return <SignUpSelectionView />
 }
+export default SignInSelection;

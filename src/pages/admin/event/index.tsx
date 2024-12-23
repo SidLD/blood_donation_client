@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import {
   Dialog,
   DialogContent,
@@ -21,12 +23,21 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { z } from "zod"
+import { format, toZonedTime } from 'date-fns-tz'
+
+const eventSchema = z.object({
+  title: z.string({ required_error: "Title is required" }),
+  description: z.string({ required_error: "Description is required" }).min(2),
+  startDate: z.string({ required_error: "Start Date is required" }),
+  endDate: z.string({ required_error: "End Date is required" }),
+  location: z.string({ required_error: "Location is required" }),
+  imgUrl: z.any()
+})
+
+type EventFormData = z.infer<typeof eventSchema>
 
 const EventsPage: React.FC = () => {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [date, setDate] = useState('')
-  const [location, setLocation] = useState('')
   const [image, setImage] = useState<File | null>(null)
   const [events, setEvents] = useState<EventType[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -38,39 +49,43 @@ const EventsPage: React.FC = () => {
   const navigate = useNavigate()
   const { toast } = useToast()
 
+  const { control, handleSubmit, reset, setValue } = useForm<EventFormData>({
+    resolver: zodResolver(eventSchema),
+  })
+
   useEffect(() => {
     fetchEvents()
   }, [])
 
   const fetchEvents = async () => {
     try {
-      const { data } = await getEvents() as unknown as any;
+      const { data } = await getEvents() as unknown as any
       if (data.length > 0) {
         const updatedEvents = await Promise.all(data.map(async (temp: EventType) => {
-          let tempImg = null;
+          let tempImg = null
           try {
-             tempImg = await getDownloadURL(ref(Storage, temp.imgUrl));
+             tempImg = await getDownloadURL(ref(Storage, temp.imgUrl))
           } catch (error) {
             tempImg = null
           }
           return {
             ...temp,
             imgUrl: tempImg
-          };
-        }));
-        setEvents(updatedEvents);
-      }else{
+          }
+        }))
+        setEvents(updatedEvents)
+      } else {
         setEvents([])
       }
     } catch (err) {
-      console.error('Error fetching events:', err);
+      console.error('Error fetching events:', err)
       toast({
         title: "Error",
         description: "Failed to fetch events. Please try again.",
         variant: "destructive",
       })
     }
-  };
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -79,8 +94,7 @@ const EventsPage: React.FC = () => {
     }
   }
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data: EventFormData) => {
     let imageUrl = null
 
     if (!image && !isUpdating) {
@@ -97,22 +111,21 @@ const EventsPage: React.FC = () => {
 
     try {
       if (image) {
-        const uploadedImageRef = await uploadImage(image, `${title}-${new Date()}`) as string;
-        imageUrl = await getDownloadURL(ref(Storage, uploadedImageRef));
+        const uploadedImageRef = await uploadImage(image, `${data.title}-${new Date()}`) as string
+        imageUrl = await getDownloadURL(ref(Storage, uploadedImageRef))
       }
 
       const eventData: EventType = {
-        title,
-        description,
+        ...data,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
         imgUrl: imageUrl || (selectedEvent?.imgUrl || ''),
-        date: date || new Date().toISOString(),
-        location,
-      };
+      }
 
       if (isUpdating && selectedEvent) {
         await updateEvent(selectedEvent._id!, eventData)
       } else {
-        await createEvent(eventData as EventType)
+        await createEvent(eventData)
       }
 
       resetForm()
@@ -142,20 +155,22 @@ const EventsPage: React.FC = () => {
 
   const handleViewEvent = (event: EventType) => {
     setSelectedEvent(event)
-    setTitle(event.title)
-    setDescription(event.description)
-    setDate(new Date(event.date).toISOString().split('T')[0])
-    setLocation(event.location)
+    setValue("title", event.title)
+    setValue("description", event.description)
+    setValue("startDate", format(toZonedTime(new Date(event.startDate), 'Asia/Manila'), "yyyy-MM-dd'T'HH:mm"))
+    setValue("endDate", format(toZonedTime(new Date(event.endDate), 'Asia/Manila'), "yyyy-MM-dd'T'HH:mm"))
+    setValue("location", event.location)
     setShowModal(true)
     setIsUpdating(false)
   }
 
   const handleUpdateEvent = (event: EventType) => {
-    setTitle(event.title)
-    setDescription(event.description)
-    setDate(new Date(event.date).toISOString().split('T')[0])
-    setLocation(event.location)
     setSelectedEvent(event)
+    setValue("title", event.title)
+    setValue("description", event.description)
+    setValue("startDate", format(toZonedTime(new Date(event.startDate), 'Asia/Manila'), "yyyy-MM-dd'T'HH:mm"))
+    setValue("endDate", format(toZonedTime(new Date(event.endDate), 'Asia/Manila'), "yyyy-MM-dd'T'HH:mm"))
+    setValue("location", event.location)
     setIsUpdating(true)
     setShowModal(true)
   }
@@ -182,10 +197,7 @@ const EventsPage: React.FC = () => {
   }
 
   const resetForm = () => {
-    setTitle('')
-    setDescription('')
-    setDate('')
-    setLocation('')
+    reset()
     setImage(null)
     setIsUpdating(false)
     setSelectedEvent(null)
@@ -224,7 +236,8 @@ const EventsPage: React.FC = () => {
             <thead>
               <tr>
                 <th className="p-3 text-left">Title</th>
-                <th className="p-3 text-left">Date</th>
+                <th className="p-3 text-left">Start Date</th>
+                <th className="p-3 text-left">End Date</th>
                 <th className="p-3 text-left">Location</th>
                 <th className="p-3 text-left">Actions</th>
               </tr>
@@ -233,7 +246,8 @@ const EventsPage: React.FC = () => {
               {events.map((event) => (
                 <tr key={event._id} className="hover:bg-gray-700">
                   <td className="p-3">{event.title}</td>
-                  <td className="p-3">{new Date(event.date).toLocaleDateString()}</td>
+                  <td className="p-3">{format(toZonedTime(new Date(event.startDate), 'Asia/Manila'), 'MMM dd, yyyy HH:mm')}</td>
+                  <td className="p-3">{format(toZonedTime(new Date(event.endDate), 'Asia/Manila'), 'MMM dd, yyyy HH:mm')}</td>
                   <td className="p-3">{event.location}</td>
                   <td className="p-3">
                     <Button variant="ghost" size="icon" onClick={() => handleViewEvent(event)}>
@@ -264,52 +278,80 @@ const EventsPage: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             <ScrollArea className="mt-8 max-h-[60vh] pr-6">
-              <form onSubmit={handleFormSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid w-full items-center gap-1.5">
                   <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Enter event title"
-                    required
-                    disabled={!!(selectedEvent && !isUpdating)}
+                  <Controller
+                    name="title"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        placeholder="Enter event title"
+                        disabled={!!(selectedEvent && !isUpdating)}
+                      />
+                    )}
                   />
                 </div>
 
                 <div className="grid w-full gap-1.5">
                   <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Enter event description"
-                    rows={4}
-                    required
-                    disabled={!!(selectedEvent && !isUpdating)}
+                  <Controller
+                    name="description"
+                    control={control}
+                    render={({ field }) => (
+                      <Textarea
+                        {...field}
+                        placeholder="Enter event description"
+                        rows={4}
+                        disabled={!!(selectedEvent && !isUpdating)}
+                      />
+                    )}
                   />
                 </div>
 
                 <div className="grid w-full items-center gap-1.5">
-                  <Label htmlFor="date">Date</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    disabled={!!(selectedEvent && !isUpdating)}
+                  <Label htmlFor="startDate">Start Date and Time</Label>
+                  <Controller
+                    name="startDate"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="datetime-local"
+                        disabled={!!(selectedEvent && !isUpdating)}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="grid w-full items-center gap-1.5">
+                  <Label htmlFor="endDate">End Date and Time</Label>
+                  <Controller
+                    name="endDate"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="datetime-local"
+                        disabled={!!(selectedEvent && !isUpdating)}
+                      />
+                    )}
                   />
                 </div>
 
                 <div className="grid w-full items-center gap-1.5">
                   <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Enter event location"
-                    required
-                    disabled={!!(selectedEvent && !isUpdating)}
+                  <Controller
+                    name="location"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        placeholder="Enter event location"
+                        disabled={!!(selectedEvent && !isUpdating)}
+                      />
+                    )}
                   />
                 </div>
               
@@ -347,7 +389,7 @@ const EventsPage: React.FC = () => {
               </Button>
 
               {(isUpdating || !selectedEvent) && (
-                <Button type="submit" disabled={isLoading} onClick={handleFormSubmit}>
+                <Button type="submit" disabled={isLoading} onClick={handleSubmit(onSubmit)}>
                   {isLoading ? 'Uploading...' : (isUpdating ? 'Update' : 'Create') + ' Event'}
                 </Button>
               )}

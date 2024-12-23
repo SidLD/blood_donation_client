@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { getDownloadURL, ref } from 'firebase/storage'
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Storage } from '@/lib/firebase'
 import { useNavigate } from 'react-router-dom'
-import { EventType } from '@/types/interface'
 import { getEvents } from '@/lib/api'
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from '@/hooks/use-toast'
@@ -17,8 +14,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import logo from '../../assets/logo.png'
+import background from '../../assets/full-background.png'
+import { EventType } from '@/types/interface'
 
 const ITEMS_PER_PAGE = 6;
+
 
 const EventsViewPage: React.FC = () => {
   const [events, setEvents] = useState<EventType[]>([])
@@ -37,21 +38,9 @@ const EventsViewPage: React.FC = () => {
   const fetchEvents = async () => {
     setIsLoading(true)
     try {
-      const { data } = await getEvents() as unknown as any;
+      const { data } = await getEvents() as { data: EventType[] };
       if (data.length > 0) {
-        const updatedEvents = await Promise.all(data.map(async (temp: EventType) => {
-          let tempImg = null;
-          try {
-             tempImg = await getDownloadURL(ref(Storage, temp.imgUrl));
-          } catch (error) {
-            tempImg = null
-          }
-          return {
-            ...temp,
-            imgUrl: tempImg
-          };
-        }));
-        setEvents(updatedEvents);
+        setEvents(data);
       } else {
         setEvents([])
       }
@@ -75,14 +64,15 @@ const EventsViewPage: React.FC = () => {
   const filterEvents = (status: string) => {
     const now = new Date()
     return events.filter(event => {
-      const eventDate = new Date(event.date)
+      const startDate = new Date(event.startDate)
+      const endDate = new Date(event.endDate)
       switch(status) {
         case 'upcoming':
-          return eventDate > now
+          return startDate > now
         case 'current':
-          return eventDate.toDateString() === now.toDateString()
+          return startDate <= now && endDate >= now
         case 'done':
-          return eventDate < now
+          return endDate < now
         default:
           return true
       }
@@ -99,8 +89,26 @@ const EventsViewPage: React.FC = () => {
   const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE)
 
   return (
-    <div className="relative min-h-screen bg-[#4A1515]">
-      <div className="absolute mt-8 left-8">
+    <main className="min-h-screen bg-gradient-to-t from-black to-transparent bg-[#4b0c0c] relative overflow-y-auto pt-20">
+      <img 
+        src={background} 
+        alt="background"
+        className="fixed inset-0 z-0 object-cover w-full h-full"
+      />
+      <div className="fixed inset-0 z-10 pointer-events-none bg-gradient-to-t from-black/50 to-transparent" aria-hidden="true" />
+
+      <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between p-6 text-white/90">
+        <div className="flex items-center cursor-pointer" onClick={() => { navigate('/') }}>
+          <img width={60} src={logo} alt="logo" />
+          <span className="text-2xl font-bold">
+            {['B', 'L', 'O', 'O', 'D'].map((data, index) => 
+              <span key={index} className="transition-all duration-300 ease-in-out hover:text-red-600 hover:scale-105">{data}</span>)}
+          </span>
+          <span className="ml-2 text-sm font-bold">
+          {['L', 'i', 'n', 'k'].map((data, index) => 
+              <span key={index} className="transition-all duration-300 ease-in-out hover:text-red-600 hover:scale-105">{data}</span>)}
+          </span>
+        </div>
         <button
           onClick={() => navigate('/')}
           className="flex items-center text-white hover:opacity-80"
@@ -110,7 +118,7 @@ const EventsViewPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="p-8 mx-auto max-w-7xl">
+      <div className="relative z-20 p-8 mx-auto max-w-7xl">
         <h1 className="mt-16 mb-8 text-4xl font-bold text-center text-white">Events</h1>
 
         <Tabs defaultValue="upcoming" className="w-full" onValueChange={setActiveTab}>
@@ -163,8 +171,12 @@ const EventsViewPage: React.FC = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">{selectedEvent.title}</h3>
                   <p>{selectedEvent.description}</p>
-                  <p><strong>Date:</strong> {new Date(selectedEvent.date).toLocaleDateString()}</p>
+                  <p><strong>Start Date:</strong> {new Date(selectedEvent.startDate).toLocaleString()}</p>
+                  <p><strong>End Date:</strong> {new Date(selectedEvent.endDate).toLocaleString()}</p>
                   <p><strong>Location:</strong> {selectedEvent.location}</p>
+                  <p><strong>Organizer:</strong> {selectedEvent.user?.username}</p>
+                  <p><strong>License:</strong> {selectedEvent.user?.license}</p>
+                  <p><strong>Address:</strong> {selectedEvent.user?.address}</p>
                   {selectedEvent.imgUrl && (
                     <img
                       src={selectedEvent.imgUrl}
@@ -179,7 +191,7 @@ const EventsViewPage: React.FC = () => {
         </Dialog>
       </div>
       <Toaster />
-    </div>
+    </main>
   )
 }
 
@@ -209,10 +221,16 @@ const EventGrid: React.FC<EventGridProps> = ({ events, onViewEvent }) => {
               {event.title}
             </h3>
             <p className="mb-2 text-sm text-white/80">
-              {new Date(event.date).toLocaleDateString()}
+              Start: {new Date(event.startDate).toLocaleString()}
+            </p>
+            <p className="mb-2 text-sm text-white/80">
+              End: {new Date(event.endDate).toLocaleString()}
             </p>
             <p className="text-sm text-white/80">
               {event.location}
+            </p>
+            <p className="mt-2 text-sm text-white/80">
+              Organizer: {event.user?.username}
             </p>
           </div>
         </div>

@@ -56,8 +56,9 @@ export interface DonorType {
     _id?: string;
     title: string;
     description: string;
-    date: string;
-    imgUrl: string;
+    endDate: Date;
+    startDate: Date;
+    imgUrl?: string;
     location: string;
     user?: AdminType
   }

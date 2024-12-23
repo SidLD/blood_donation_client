@@ -1,4 +1,6 @@
 import GuestDonorView from "./view"
-export const GuestDonor = () => {
+ const GuestDonor = () => {
   return <GuestDonorView />
 }
+
+export default GuestDonor

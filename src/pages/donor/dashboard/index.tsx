@@ -1,6 +1,8 @@
 import ContributorDashboardView from "./view"
 
 
-export const ContributorDashboard = () => {
+const ContributorDashboard = () => {
   return <ContributorDashboardView />
 }
+
+export default ContributorDashboard

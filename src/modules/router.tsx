@@ -1,51 +1,172 @@
-import {createBrowserRouter, createRoutesFromElements, Navigate, Route} from "react-router-dom"
-import { Home } from "@/pages/home"
-import { PrivateLayout, PublicLayout } from "./module"
-import AboutUs from "@/pages/about-us"
-import { AdminDashboard } from "@/pages/admin/dashboard"
-import { ContributorDashboard } from "@/pages/donor/dashboard"
-import RegisterLayout from "@/layouts/RegisterLayout"
-import { SignUpSelection } from "@/pages/sign-up-selection"
-import { AdminSignUp } from "@/pages/admin/sign-up"
-import { DonorSignUp } from "@/pages/donor/sign-up"
-import { GuestDonor } from "@/pages/guest-donor"
-import { SignInSelection } from "@/pages/sign-in-selection"
-import { AdminSignIn } from "@/pages/admin/sign-in"
-import { DonorSignIn } from "@/pages/donor/sign-in"
-import { AdminDonorList } from "@/pages/admin/donor-list"
-import { AdminBloodSupply } from "@/pages/admin/blood-supply"
-import { AdminCalendar } from "@/pages/admin/calendar"
-import EventsPage from "@/pages/admin/event"
+import { createBrowserRouter, createRoutesFromElements, Navigate, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { PrivateLayout, PublicLayout } from "./module";
+import RegisterLayout from "@/layouts/RegisterLayout";
+import LoadingScreen from "@/components/loader/loading-screen";
+
+const Home = lazy(() => import("@/pages/home"));
+const AboutUs = lazy(() => import("@/pages/about-us"));
+const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
+const ContributorDashboard = lazy(() => import("@/pages/donor/dashboard"));
+const SignUpSelection = lazy(() => import("@/pages/sign-up-selection"));
+const AdminSignUp = lazy(() => import("@/pages/admin/sign-up"));
+const DonorSignUp = lazy(() => import("@/pages/donor/sign-up"));
+const GuestDonor = lazy(() => import("@/pages/guest-donor"));
+const SignInSelection = lazy(() => import("@/pages/sign-in-selection"));
+const AdminSignIn = lazy(() => import("@/pages/admin/sign-in"));
+const DonorSignIn = lazy(() => import("@/pages/donor/sign-in"));
+const AdminDonorList = lazy(() => import("@/pages/admin/donor-list"));
+const AdminBloodSupply = lazy(() => import("@/pages/admin/blood-supply"));
+const AdminCalendar = lazy(() => import("@/pages/admin/calendar"));
+const EventsPage = lazy(() => import("@/pages/admin/event"));
+
 const routers = createBrowserRouter(
-    createRoutesFromElements(
-        <>
-            <Route path="/" element={<PublicLayout/>}>
-                <Route  index element={<Home />} />
-                <Route  path="/about-us" element={<AboutUs />} />
-            </Route>  
-            <Route path="/register" element={<RegisterLayout/>}>
-                <Route index element={ <SignUpSelection />} />
-                <Route  path="admin" element={<AdminSignUp />} />
-                <Route  path="donor" element={<DonorSignUp />} />
-                <Route  path="guest-donor" element={<GuestDonor />} />
-            </Route> 
-            <Route path="/login" element={<RegisterLayout/>}>
-                <Route index element={ <SignInSelection />} />
-                <Route  path="admin" element={<AdminSignIn />} />
-                <Route  path="donor" element={<DonorSignIn />} />
-            </Route>  
-            <Route path="/admin" element={<PrivateLayout/>}>
-                <Route  index  element={<AdminDashboard />}/>
-                <Route  path="calendar"  element={<AdminCalendar />}/>
-                <Route  path="donor-list"  element={<AdminDonorList />}/>
-                <Route  path="blood-supply"  element={<AdminBloodSupply />}/>
-                <Route  path="events"  element={<EventsPage />}/>
-            </Route>
-            <Route path="/donor" element={<PrivateLayout/>}>
-                <Route  index  element ={ <ContributorDashboard /> }/>
-            </Route>
-            <Route  path="*" element={<Navigate to="/" replace />} />
-        </>
-    )
-)
-export default routers
+  createRoutesFromElements(
+    <>
+      {/* Public Routes */}
+      <Route path="/" element={<PublicLayout />}>
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <Home />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/about-us"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AboutUs />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* Register Routes */}
+      <Route path="/register" element={<RegisterLayout />}>
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <SignUpSelection />
+            </Suspense>
+          }
+        />
+        <Route
+          path="admin"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AdminSignUp />
+            </Suspense>
+          }
+        />
+        <Route
+          path="donor"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <DonorSignUp />
+            </Suspense>
+          }
+        />
+        <Route
+          path="guest-donor"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <GuestDonor />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* Login Routes */}
+      <Route path="/login" element={<RegisterLayout />}>
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <SignInSelection />
+            </Suspense>
+          }
+        />
+        <Route
+          path="admin"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AdminSignIn />
+            </Suspense>
+          }
+        />
+        <Route
+          path="donor"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <DonorSignIn />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={<PrivateLayout />}>
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AdminDashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="calendar"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AdminCalendar />
+            </Suspense>
+          }
+        />
+        <Route
+          path="donor-list"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AdminDonorList />
+            </Suspense>
+          }
+        />
+        <Route
+          path="blood-supply"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AdminBloodSupply />
+            </Suspense>
+          }
+        />
+        <Route
+          path="events"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <EventsPage />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* Donor Routes */}
+      <Route path="/donor" element={<PrivateLayout />}>
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <ContributorDashboard />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </>
+  )
+);
+
+export default routers;

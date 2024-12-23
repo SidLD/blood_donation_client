@@ -1,8 +1,10 @@
 import DonorsPage from "./view"
 
 
-export const AdminDonorList = () => {
+const AdminDonorList = () => {
   return (
     <DonorsPage />
   )
 }
+
+export default AdminDonorList

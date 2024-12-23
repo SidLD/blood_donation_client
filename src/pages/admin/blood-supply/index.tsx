@@ -1,9 +1,11 @@
 import BloodSupplyPage from "./view"
 
 
-export const AdminBloodSupply = () => {
+const AdminBloodSupply = () => {
   return (
     
     <BloodSupplyPage />
   )
 }
+
+export default AdminBloodSupply

@@ -1,4 +1,6 @@
 import AdminSignUpForm from "./view"
-export const DonorSignIn = () => {
+const DonorSignIn = () => {
   return <AdminSignUpForm />
 }
+
+export default DonorSignIn;

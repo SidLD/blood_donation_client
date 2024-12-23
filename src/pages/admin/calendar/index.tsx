@@ -1,8 +1,9 @@
 import HospitalCalendar from "./view"
 
 
-export const AdminCalendar = () => {
+const AdminCalendar = () => {
   return (
     <HospitalCalendar />
   )
 }
+export default AdminCalendar
