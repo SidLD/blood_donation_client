@@ -7,6 +7,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import logo from '../..//assets/logo.png'
 import background from '../../assets/full-background.png'
 import { getEvents } from '@/lib/api'
+import Autoplay from "embla-carousel-autoplay"
 
 interface IEvent {
   _id: string;
@@ -96,7 +97,12 @@ const HomeView: React.FC = () => {
 
         <section className="flex flex-col items-center justify-center w-full h-screen max-w-4xl mx-auto text-white snap-start">
           <h2 className="mb-8 text-3xl font-bold text-center">Events</h2>
-          <Carousel className="w-full">
+          <Carousel className="w-full" 
+           plugins={[
+            Autoplay({
+              delay: 2000,
+            }),
+          ]}>
             <CarouselContent>
               <CarouselItem>
                 <EventCategory title="Past Events" events={pastEvents} />

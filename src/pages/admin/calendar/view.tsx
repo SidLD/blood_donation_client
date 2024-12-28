@@ -1,95 +1,116 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import  { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Droplet, ArrowLeft } from 'lucide-react'
 import { format, addMonths, subMonths, parseISO, setHours, setMinutes } from 'date-fns'
 import { toZonedTime } from 'date-fns-tz'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CalendarData } from '@/types/calendar'
+import { getHospitalCalendar } from '@/lib/api'
 
-export const dummyCalendarData: CalendarData = {
-    '2024-12-04': {
-      date: 4,
-      bloodUnits: 3,
-      appointments: [
-        {
-          id: '1',
-          time: '09:00',
-          patientName: 'John Doe',
-          screeningType: 'Blood Donation',
-          bloodUnits: 1
-        },
-        {
-          id: '2',
-          time: '10:00',
-          patientName: 'Jane Smith',
-          screeningType: 'Blood Screening',
-          bloodUnits: 1
-        },
-        {
-          id: '3',
-          time: '11:00',
-          patientName: 'Robert Johnson',
-          screeningType: 'Blood Donation',
-          bloodUnits: 1
-        }
-      ]
-    },
-    '2024-12-10': {
-      date: 10,
-      bloodUnits: 8,
-      appointments: []
-    },
-    '2024-12-13': {
-      date: 13,
-      bloodUnits: 5,
-      appointments: []
-    }
-  }
+// Types
+interface Appointment {
+  id: string;
+  time: string;
+  patientName: string;
+  screeningType: string;
+  bloodUnits: number;
+}
 
-export default function HospitalCalendar() {
-  const [currentDate, setCurrentDate] = useState(new Date())
+interface DayData {
+  date: number;
+  bloodUnits: number;
+  appointments: Appointment[];
+}
+
+interface CalendarData {
+  [date: string]: DayData;
+}
+
+interface Transaction {
+  _id: string;
+  user: {
+    _id: string;
+    username: string;
+  };
+  datetime: string;
+  status: string;
+  hospital: string;
+  remarks: string;
+}
+
+
+export default function HospitalCalendar(): JSX.Element {
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [calendarData, setCalendarData] = useState<CalendarData>({})
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const handlePrevMonth = () => {
+  const handlePrevMonth = (): void => {
     setCurrentDate(subMonths(currentDate, 1))
   }
 
-  const handleNextMonth = () => {
+  const handleNextMonth = (): void => {
     setCurrentDate(addMonths(currentDate, 1))
   }
 
-  useEffect(() => {
-    setCalendarData(dummyCalendarData)
-  }, [])
-
-  const handleDateClick = async (dateStr: string) => {
+  const fetchHospitalCalendar = async (): Promise<void> => {
     setIsLoading(true)
-    setSelectedDate(dateStr)
     try {
-    //   const data = await fetchCalendarData(dateStr)
-    //   setCalendarData(data)
+      const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')
+      const year = currentDate.getFullYear().toString()
+      const { data } = await getHospitalCalendar(month, year) as unknown as any
+      
+      if(data.length) {
+         const formattedData: CalendarData = data.reduce((acc: CalendarData, transaction: Transaction) => {
+        const dateStr = format(new Date(transaction.datetime), 'yyyy-MM-dd')
+        if (!acc[dateStr]) {
+          acc[dateStr] = {
+            date: new Date(transaction.datetime).getDate(),
+            bloodUnits: 0,
+            appointments: []
+          }
+        }
+        acc[dateStr].bloodUnits += 1
+        acc[dateStr].appointments.push({
+          id: transaction._id,
+          time: format(new Date(transaction.datetime), 'HH:mm'),
+          patientName: transaction.user.username,
+          screeningType: 'Blood Donation',
+          bloodUnits: 1
+        })
+        return acc
+      }, {})
+
+      setCalendarData(formattedData)
+      }
     } catch (error) {
-      console.error('Error fetching calendar data:', error)
+      console.error('Error fetching hospital calendar:', error)
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
-  const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-  const daysInMonth = new Date(
+  useEffect(() => {
+    fetchHospitalCalendar()
+  }, [currentDate])
+
+  const handleDateClick = (dateStr: string): void => {
+    setSelectedDate(dateStr)
+  }
+
+  const weekDays: string[] = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+  const daysInMonth: number = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth() + 1,
     0
   ).getDate()
-  const firstDayOfMonth = new Date(
+  const firstDayOfMonth: number = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth(),
     1
   ).getDay()
 
-  const renderCalendarView = () => (
+  const renderCalendarView = (): JSX.Element => (
     <div className="p-6 w-full h-full bg-[#F8EFEF] rounded-lg relative">
       <div className="flex items-center justify-between mb-8">
         <div className="text-6xl font-bold text-[#4A1515]">
@@ -162,7 +183,7 @@ export default function HospitalCalendar() {
               >
                 {day}
               </span>
-              {dayData?.bloodUnits && (
+              {dayData?.bloodUnits > 0 && (
                 <div className="absolute top-0 right-0 flex items-center">
                   <Droplet className="w-3 h-3 text-red-600" />
                   <span className="text-xs text-red-600">
@@ -188,13 +209,15 @@ export default function HospitalCalendar() {
     </div>
   )
 
-  const renderDayView = () => {
+  const renderDayView = (): JSX.Element | null => {
     if (!selectedDate) return null
 
     const dayData = calendarData[selectedDate]
     const date = parseISO(selectedDate)
 
-    const timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00']
+    const timeSlots: string[] = Array.from({ length: 24 }, (_, i) => 
+      `${i.toString().padStart(2, '0')}:00`
+    )
 
     return (
       <div className="p-6 bg-[#F8EFEF] rounded-lg h-full flex flex-col">

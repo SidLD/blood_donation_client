@@ -1,33 +1,70 @@
-import React, { useState, useEffect } from 'react'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-// import { getCurrentUser, updateUserSettings } from '@/lib/api'
+import { Switch } from '@/components/ui/switch'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Card, CardContent } from '@/components/ui/card'
+import { getDonorSetting, updateDonorSetting, updateDonorPassword } from '@/lib/api'
 
-interface UserData {
-  donorId: string;
-  status: string;
-  name: string;
-  email: string;
-}
+const settingsSchema = z.object({
+  email: z.string().email({ message: "Invalid email address" }),
+  status: z.boolean(),
+})
+
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+})
+
+type SettingsFormValues = z.infer<typeof settingsSchema>
+type PasswordFormValues = z.infer<typeof passwordSchema>
 
 export default function UserSettings() {
-  const [userData] = useState<UserData | null>(null)
-  const [status, setStatus] = useState('')
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
+
+  const settingsForm = useForm<SettingsFormValues>({
+    resolver: zodResolver(settingsSchema),
+    defaultValues: {
+      email: '',
+      status: true,
+    },
+  })
+
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
+  })
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // const data = await getCurrentUser()
-        // setUserData(data)
-        // setStatus(data.status)
+        const { data } = await getDonorSetting() as unknown as any
+        settingsForm.reset({
+          email: data.email,
+          status: data.status === 'ACTIVE',
+        })
         setIsLoading(false)
       } catch (error) {
         console.error('Failed to fetch user data:', error)
@@ -41,33 +78,18 @@ export default function UserSettings() {
     }
 
     fetchUserData()
-  }, [toast])
+  }, [toast, settingsForm])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "New password and confirm password do not match.",
-        variant: "destructive",
-      })
-      return
-    }
-
+  const onSettingsSubmit = async (data: SettingsFormValues) => {
     try {
-    //   await updateUserSettings({
-    //     status,
-    //     currentPassword,
-    //     newPassword: newPassword || undefined,
-    //   })
+      await updateDonorSetting({
+        ...data,
+        status: data.status ? 'ACTIVE' : 'INACTIVE',
+      })
       toast({
         title: "Settings Updated",
         description: "Your user settings have been successfully updated.",
       })
-      // Reset password fields
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
     } catch (error) {
       toast({
         title: "Update Failed",
@@ -77,102 +99,151 @@ export default function UserSettings() {
     }
   }
 
+  const onPasswordSubmit = async (data: PasswordFormValues) => {
+    try {
+      await updateDonorPassword(data)
+      toast({
+        title: "Password Updated",
+        description: "Your password has been successfully updated.",
+      })
+      passwordForm.reset()
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update password. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   if (isLoading) {
     return <div className="text-white">Loading user data...</div>
   }
 
-//   if (!userData) {
-//     return <div className="text-white">Error: Unable to load user data.</div>
-//   }
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="mb-4 text-2xl font-bold text-white">User Settings</h2>
-      
-      <div>
-        <Label htmlFor="donorId" className="text-white">Donor ID</Label>
-        <Input
-          id="donorId"
-          value={userData?.donorId}
-          className="text-white bg-white/10"
-          disabled
-        />
-      </div>
+    <div className="space-y-6">
+      <Card className="bg-white/10">
+        <CardContent>
+          <Form {...settingsForm}>
+            <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-2">
+              <FormField
+                control={settingsForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="email"
+                        className="mt-2 text-white bg-white/10"
+                        placeholder="Enter your email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <div>
-        <Label htmlFor="name" className="text-white">Name</Label>
-        <Input
-          id="name"
-          value={userData?.name}
-          className="text-white bg-white/10"
-          disabled
-        />
-      </div>
+              <FormField
+                control={settingsForm.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base text-white">
+                        Account Status
+                      </FormLabel>
+                      <div className="text-sm text-white/70">
+                        {field.value ? 'ACTIVE' : 'INACTIVE'}
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-      <div>
-        <Label htmlFor="email" className="text-white">Email</Label>
-        <Input
-          id="email"
-          value={userData?.email}
-          className="text-white bg-white/10"
-          disabled
-        />
-      </div>
+              <Button type="submit" className="w-full">
+                Update Settings
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
 
-      <div>
-        <Label htmlFor="status" className="text-white">Status</Label>
-        <Select onValueChange={setStatus} value={status}>
-          <SelectTrigger className="text-white bg-white/10">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <Card className="bg-white/10">
+        <CardContent>
+          <Form {...passwordForm}>
+            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-2">
+              <FormField
+                control={passwordForm.control}
+                name="currentPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Current Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        className="text-white bg-white/10"
+                        placeholder="Enter current password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <div>
-        <Label htmlFor="currentPassword" className="text-white">Current Password</Label>
-        <Input
-          id="currentPassword"
-          type="password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          className="text-white bg-white/10"
-          placeholder="Enter current password"
-        />
-      </div>
+              <FormField
+                control={passwordForm.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">New Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        className="text-white bg-white/10"
+                        placeholder="Enter new password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <div>
-        <Label htmlFor="newPassword" className="text-white">New Password</Label>
-        <Input
-          id="newPassword"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          className="text-white bg-white/10"
-          placeholder="Enter new password"
-        />
-      </div>
+              <FormField
+                control={passwordForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Confirm New Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        className="text-white bg-white/10"
+                        placeholder="Confirm new password"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-      <div>
-        <Label htmlFor="confirmPassword" className="text-white">Confirm New Password</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="text-white bg-white/10"
-          placeholder="Confirm new password"
-        />
-      </div>
-
-      <Button type="submit" className="w-full">
-        Update Settings
-      </Button>
-    </form>
+              <Button type="submit" className="w-full">
+                Update Password
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 

@@ -13,6 +13,8 @@ import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
 import { createGuestDonor } from "@/lib/api"
 
+const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as const
+
 const donorSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   address: z.string().min(5, "Address must be at least 5 characters"),
@@ -20,6 +22,9 @@ const donorSchema = z.object({
   sex: z.any(),
   phone: z.string().regex(/^09\d{9}$/, "Phone number must be in the format 09XXXXXXXXX"),
   email: z.string().email("Invalid email address"),
+  bloodType: z.enum(bloodTypes, {
+    required_error: "Please select a blood type.",
+  }),
   medicalCondition: z.any(),
   date: z.string().min(1, "Date is required"),
   time: z.string().min(1, "Time is required"),
@@ -174,6 +179,20 @@ const GuestDonorView: React.FC = () => {
               {errors.email && <p className="text-red-500">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
+              <Label htmlFor="bloodType">Blood Type</Label>
+              <Select onValueChange={(value) => setValue('bloodType', value as any)}>
+                <SelectTrigger id="bloodType" className="w-full text-black bg-white">
+                  <SelectValue placeholder="Select blood type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bloodTypes.map((type) => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.bloodType && <p className="text-red-500">{errors.bloodType.message}</p>}
+            </div>
+            <div className="space-y-2">
               <Label>Do you have any medical condition?</Label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">
@@ -276,7 +295,7 @@ const GuestDonorView: React.FC = () => {
 
   return (
     <div className="grid w-full h-full md:grid-cols-3 ">
-      <div className="col-span-2 bg-[#591C1C]  text-white ">
+      <div className="col-span-2 bg-[#3D0000]  text-white ">
         <form className="max-w-md mx-auto space-y-2"  onSubmit={handleSubmit(onSubmit)}>
           <div className="flex items-center justify-center gap-2">
             <img className="relative float-left" width={60} src={logo} alt="logo" />

@@ -1,6 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
@@ -42,25 +45,93 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-// import { getTransactions, generateDonorIds, updateTransaction, deleteTransaction } from '@/lib/api'
+import { getTransactions, createTransaction, updateTransaction, deleteTransaction, getHospitals, getHospitalDonors } from '@/lib/api'
+import { Transaction, TransactionForm } from '@/types/transaction'
+import { auth } from '@/lib/services'
+import { Donor } from '@/types/user'
 
-interface Transaction {
-  id: string
-  user: string
-  admin: string
-  date: string
-  status: 'pending' | 'success' | 'reject'
-  remarks: string
-}
+
+const transactionSchema = z.object({
+  _id: z.string().optional(),
+  hospital: z.string(),
+  datetime: z.date(),
+  status: z.enum(['PENDING', 'SUCCESS', 'APPROVED', 'REJECT']),
+  remarks: z.string(),
+  user: z.string(),
+});
 
 const BloodSupplyPage: React.FC = () => {
+  const [hospitals, setHospitals] = useState<{ _id: string; username: string; address: string }[]>([])
+  const [donors, setDonors] = useState<Donor[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [openModal, setOpenModal] = useState<Boolean>(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [donorIds, _setDonorIds] = useState<string[]>([])
-  const [numDonorIds, setNumDonorIds] = useState(1)
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
-  const [_deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const { toast } = useToast()
+  
+  const fetchHospitals = async () => {
+    try {
+      const { data } = (await getHospitals()) as unknown as any
+      if (data.length > 0) {
+        setHospitals(data)
+      } else {
+        setHospitals([])
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch hospitals. Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const fetchHospotalDonors = async () => {
+    try {
+      const { data } = (await getHospitalDonors()) as unknown as any
+      if (data.length > 0) {
+        setDonors(data)
+      } else {
+        setDonors([])
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch hospitals. Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
+  useEffect(() => {
+    fetchHospitals()
+    fetchHospotalDonors()
+  }, [])
+
+
+  const { control, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof transactionSchema>>({
+    resolver: zodResolver(transactionSchema),
+    defaultValues: {
+      hospital: '',
+      datetime: new Date(),
+      status: 'PENDING',
+      remarks: '',
+      user: '',
+    }
+  })
+
+  const handleUpdateDonor = async (data: Transaction) => {
+    reset({
+      _id: data._id,
+      datetime: new Date(data.datetime),
+      user: data.user as unknown as string,
+      hospital: data.hospital._id as string,
+      remarks: data.remarks,
+      status: data.status,
+    })
+    setOpenModal(true)
+  }
 
   useEffect(() => {
     fetchTransactions()
@@ -69,8 +140,13 @@ const BloodSupplyPage: React.FC = () => {
   const fetchTransactions = async () => {
     setIsLoading(true)
     try {
-      // const data = await getTransactions()
-      // setTransactions(data)
+      const {data} = await getTransactions() as unknown as any
+      if(data.length > 0){
+        setTransactions(data)
+      }else{
+        setTransactions([])
+      }
+
     } catch (error) {
       console.error('Error fetching transactions:', error)
       toast({
@@ -83,50 +159,40 @@ const BloodSupplyPage: React.FC = () => {
     }
   }
 
-  const handleGenerateDonorIds = async () => {
+  const handleCreateTransaction = async (data:  z.infer<typeof transactionSchema>) => {
     try {
-      // const ids = await generateDonorIds(numDonorIds)
-      // setDonorIds(ids)
+      const payload: TransactionForm = {
+        ...data,
+        hospital: data._id ? data.hospital : auth.getUserInfo()._id
+      }
+      if (data._id) {
+        await updateTransaction(data._id, payload) as unknown as any
+      } else {
+        await createTransaction(payload) as unknown as any
+      }
+      await fetchTransactions()
+      setIsCreateDialogOpen(false)
+      setOpenModal(false)
+      reset()
       toast({
         title: "Success",
-        description: `Generated ${numDonorIds} donor ID(s).`,
+        description: data._id ? "Transaction updated successfully." : "Transaction created successfully.",
       })
     } catch (error) {
-      console.error('Error generating donor IDs:', error)
+      console.error('Error creating/updating transaction:', error)
       toast({
         title: "Error",
-        description: "Failed to generate donor IDs. Please try again.",
+        description: `Failed to ${data._id ? 'update' : 'create'} transaction. Please try again.`,
         variant: "destructive",
       })
     }
   }
 
-  const handleUpdateTransaction = async (_updatedTransaction: Transaction) => {
-    try {
-      // await updateTransaction(updatedTransaction)
-      // setTransactions(transactions.map(t => 
-      //   t.id === updatedTransaction.id ? updatedTransaction : t
-      // ))
-      setEditingTransaction(null)
-      toast({
-        title: "Success",
-        description: "Transaction updated successfully.",
-      })
-    } catch (error) {
-      console.error('Error updating transaction:', error)
-      toast({
-        title: "Error",
-        description: "Failed to update transaction. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
 
   const handleDeleteTransaction = async (transactionId: string) => {
     try {
-      // await deleteTransaction(transactionId)
-      setTransactions(transactions.filter(t => t.id !== transactionId))
-      setDeletingTransaction(null)
+      await deleteTransaction(transactionId)
+      setTransactions(transactions.filter(t => t._id !== transactionId))
       toast({
         title: "Success",
         description: "Transaction deleted successfully.",
@@ -165,47 +231,137 @@ const BloodSupplyPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-[#4A1515]">
             Transactions
           </h1>
-          <Dialog>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
-                <Plus className="w-4 h-4 mr-2" /> Generate Donor IDs
+                <Plus className="w-4 h-4 mr-2" /> Create Transaction
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Generate Donor IDs</DialogTitle>
+                <DialogTitle>Create Transaction</DialogTitle>
                 <DialogDescription>
-                  Enter the number of donor IDs you want to generate.
+                  Enter the details for the new transaction.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid items-center grid-cols-4 gap-4">
-                  <Label htmlFor="numIds" className="text-right">
-                    Number of IDs
-                  </Label>
-                  <Input
-                    id="numIds"
-                    type="number"
-                    className="col-span-3"
-                    value={numDonorIds}
-                    onChange={(e) => setNumDonorIds(parseInt(e.target.value))}
-                    min={1}
-                  />
+              <form onSubmit={handleSubmit(handleCreateTransaction)}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="hospital" className="text-right">
+                      Hospital
+                    </Label>
+                    <Controller
+                      name="hospital"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value} disabled={true}>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select Hospital" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {hospitals.map(hospital => (
+                              <SelectItem key={hospital._id} value={hospital._id}>
+                                {hospital.username} - {hospital.address}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.hospital && <p className="text-sm text-red-500">{errors.hospital.message}</p>}
+                  
+                    <Label htmlFor="donor" className="text-right">
+                      Donor
+                    </Label>
+                    <Controller
+                      name="user"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select Donor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {donors.map(donor => (
+                              <SelectItem key={donor._id} value={donor._id || ''}>
+                                {donor.username} - {donor.address}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.user && <p className="text-sm text-red-500">{errors.user.message}</p>}
+                    <Label htmlFor="datetime" className="text-right">
+                      Date & Time
+                    </Label>
+                    <Controller
+                      name="datetime"
+                      control={control}
+                      render={({ field }) => {
+                        const manilaDate = field.value ? new Date(field.value.getTime() + (8 * 60 * 60 * 1000)) : new Date();
+                        return (
+                          <Input
+                            id="datetime"
+                            type="datetime-local"
+                            {...field}
+                            value={manilaDate.toISOString().slice(0, 16)}
+                            onChange={(e) => {
+                              const date = new Date(e.target.value);
+                              field.onChange(new Date(date.getTime() - (8 * 60 * 60 * 1000)));
+                            }}
+                            className="col-span-3"
+                          />
+                        );
+                      }}
+                    />
+                    {errors.datetime && <p className="text-sm text-red-500">{errors.datetime.message}</p>}
+                  </div>
+                  <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="status" className="text-right">
+                      Status
+                    </Label>
+                    <Controller
+                      name="status"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="SUCCESS">Success</SelectItem>
+                            <SelectItem value="REJECT">Reject</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.status && <p className="text-sm text-red-500">{errors.status.message}</p>}
+                  </div>
+                  <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="remarks" className="text-right">
+                      Remarks
+                    </Label>
+                    <Controller
+                      name="remarks"
+                      control={control}
+                      render={({ field }) => (
+                        <Textarea
+                          id="remarks"
+                          {...field}
+                          className="col-span-3"
+                          placeholder="Enter remarks"
+                        />
+                      )}
+                    />
+                    {errors.remarks && <p className="text-sm text-red-500">{errors.remarks.message}</p>}
+                  </div>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleGenerateDonorIds}>Generate</Button>
-              </DialogFooter>
-              {donorIds.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="mb-2 font-semibold">Generated Donor IDs:</h3>
-                  <ul className="pl-5 list-disc">
-                    {donorIds.map((id) => (
-                      <li key={id}>{id}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                <DialogFooter>
+                  <Button type="submit">Create</Button>
+                </DialogFooter>
+              </form>
             </DialogContent>
           </Dialog>
         </div>
@@ -213,32 +369,32 @@ const BloodSupplyPage: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Admin/Hospital</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>Hospital</TableHead>
+              <TableHead>Date & Time</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Remarks</TableHead>
+              <TableHead>Donor</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {transactions.map((transaction) => (
-              <TableRow key={transaction.id}>
-                <TableCell>{transaction.user}</TableCell>
-                <TableCell>{transaction.admin}</TableCell>
-                <TableCell>{transaction.date}</TableCell>
+              <TableRow key={transaction._id}>
+                <TableCell>{transaction.hospital.username}</TableCell>
+                <TableCell>{new Date(transaction.datetime).toLocaleString('en-US', { timeZone: 'Asia/Manila' })}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    transaction.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
-                    transaction.status === 'success' ? 'bg-green-200 text-green-800' :
+                    transaction.status === 'PENDING' ? 'bg-yellow-200 text-yellow-800' :
+                    transaction.status === 'SUCCESS' ? 'bg-green-200 text-green-800' :
                     'bg-red-200 text-red-800'
                   }`}>
                     {transaction.status}
                   </span>
                 </TableCell>
                 <TableCell>{transaction.remarks}</TableCell>
+                <TableCell>{transaction?.user ? transaction.user.username as string : 'N/A'}</TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" onClick={() => setEditingTransaction(transaction)}>
+                  <Button variant="ghost" size="sm" onClick={() => handleUpdateDonor(transaction)}>
                     <Edit className="w-4 h-4" />
                   </Button>
                   <AlertDialog>
@@ -256,7 +412,7 @@ const BloodSupplyPage: React.FC = () => {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteTransaction(transaction.id)}>
+                        <AlertDialogAction onClick={() => transaction._id && handleDeleteTransaction(transaction._id)}>
                           Delete
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -268,67 +424,135 @@ const BloodSupplyPage: React.FC = () => {
           </TableBody>
         </Table>
 
-        <Dialog open={!!editingTransaction} onOpenChange={() => setEditingTransaction(null)}>
+        <Dialog open={!!openModal} onOpenChange={() => setOpenModal(false)}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Edit Transaction</DialogTitle>
               <DialogDescription>
-                Update the status and remarks of this transaction.
+                Update the details of this transaction.
               </DialogDescription>
             </DialogHeader>
-            {editingTransaction && (
-              <form onSubmit={(e) => {
-                e.preventDefault()
-                if (editingTransaction.remarks) {
-                  handleUpdateTransaction(editingTransaction)
-                } else {
-                  toast({
-                    title: "Error",
-                    description: "Remarks are required when updating the status.",
-                    variant: "destructive",
-                  })
-                }
-              }}>
+            <form onSubmit={handleSubmit(handleCreateTransaction)}>
                 <div className="grid gap-4 py-4">
                   <div className="grid items-center grid-cols-4 gap-4">
-                    <Label htmlFor="status" className="text-right">
-                      Status
+                    <Label htmlFor="edit-hospital" className="text-right">
+                      Hospital
                     </Label>
-                    <Select
-                      value={editingTransaction.status}
-                      onValueChange={(value: 'pending' | 'success' | 'reject') => 
-                        setEditingTransaction({...editingTransaction, status: value})
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="success">Success</SelectItem>
-                        <SelectItem value="reject">Reject</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      name="hospital"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value} disabled={true}>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select hospital" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {hospitals.map(hospital => (
+                            <SelectItem key={hospital._id} value={hospital._id}>
+                              {hospital.username} - {hospital.address}
+                            </SelectItem>
+                          ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.hospital && <p className="text-sm text-red-500">{errors.hospital.message}</p>}
                   </div>
                   <div className="grid items-center grid-cols-4 gap-4">
-                    <Label htmlFor="remarks" className="text-right">
+                    <Label htmlFor="edit-donor" className="text-right">
+                      Donor
+                    </Label>
+                    <Controller
+                      name="user"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value} disabled={true}>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select Donor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {donors.map(donor => (
+                              <SelectItem key={donor._id} value={donor._id || ''}>
+                                {donor.username} - {donor.address}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.user && <p className="text-sm text-red-500">{errors.user.message}</p>}
+                  </div>
+                  <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="edit-datetime" className="text-right">
+                      Date & Time
+                    </Label>
+                    <Controller
+                      name="datetime"
+                      control={control}
+                      render={({ field }) => {
+                        const manilaDate = field.value ? new Date(field.value.getTime() + (8 * 60 * 60 * 1000)) : new Date();
+                        return (
+                          <Input
+                            id="edit-datetime"
+                            type="datetime-local"
+                            {...field}
+                            value={manilaDate.toISOString().slice(0, 16)}
+                            onChange={(e) => {
+                              const date = new Date(e.target.value);
+                              field.onChange(new Date(date.getTime() - (8 * 60 * 60 * 1000)));
+                            }}
+                            className="col-span-3"
+                          />
+                        );
+                      }}
+                    />
+                    {errors.datetime && <p className="text-sm text-red-500">{errors.datetime.message}</p>}
+                  </div>
+                  <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="edit-status" className="text-right">
+                      Status
+                    </Label>
+                    <Controller
+                      name="status"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="SUCCESS">Success</SelectItem>
+                            <SelectItem value="REJECT">Reject</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.status && <p className="text-sm text-red-500">{errors.status.message}</p>}
+                  </div>
+                  <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="edit-remarks" className="text-right">
                       Remarks
                     </Label>
-                    <Textarea
-                      id="remarks"
-                      value={editingTransaction.remarks}
-                      onChange={(e) => setEditingTransaction({...editingTransaction, remarks: e.target.value})}
-                      className="col-span-3"
-                      placeholder="Enter remarks (required)"
-                      required
+                    <Controller
+                      name="remarks"
+                      control={control}
+                      render={({ field }) => (
+                        <Textarea
+                          id="edit-remarks"
+                          {...field}
+                          className="col-span-3"
+                          placeholder="Enter remarks"
+                        />
+                      )}
                     />
+                    {errors.remarks && <p className="text-sm text-red-500">{errors.remarks.message}</p>}
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Save changes</Button>
+                  <Button type='submit'>{control._formValues._id ? 'Update' : 'Create'}</Button>
                 </DialogFooter>
               </form>
-            )}
           </DialogContent>
         </Dialog>
       </div>

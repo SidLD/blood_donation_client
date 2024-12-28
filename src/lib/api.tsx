@@ -1,6 +1,7 @@
 import axios from "axios";
 import { dataHeader } from "./helper";
 import {  ApplicationType, EventType, BloodSupplyType, DonorType, AdminType, DonorLoginType } from "../types/interface";
+import {  TransactionForm } from "@/types/transaction";
 
 // Get the API URL from environment variable
 console.log(import.meta.env.VITE_API_URL);
@@ -32,11 +33,38 @@ export const registerAdmin = (data: AdminType) => {
   });
 };
 
+// Get Admin
+export const getHospitals = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/hospitals`, dataHeader())  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
 // **Donor Authentication API**
 export const loginDonor = (data: DonorLoginType) => {
   return new Promise((resolve, reject) => {
     axios
       .post(`${import.meta.env.VITE_API_URL}/login-donor`, data)
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const getDonorSetting = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/donor/setting`, dataHeader())
       .then((res: any) => {
         resolve(res);
       })
@@ -59,11 +87,10 @@ export const registerDonor = (data: DonorType) => {
   });
 };
 
-// **Application API**
-export const createApplication = (data: ApplicationType) => {
+export const updateDonorSetting = (data: any) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/applications`, data, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/donor/setting`, data, dataHeader())
       .then((res: any) => {
         resolve(res);
       })
@@ -73,10 +100,95 @@ export const createApplication = (data: ApplicationType) => {
   });
 };
 
-export const getApplications = () => {
+export const updateDonorPassword = (data: any) => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/applications`, dataHeader())
+      .put(`${import.meta.env.VITE_API_URL}/donor/password`, data, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const getHospitalDonors = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/admin/donors`, dataHeader())  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// **Application API**
+export const createDonorApplication = (data: ApplicationType) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/donor/applications`, data, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const getDonorApplications = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/donor/applications`, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const createHospitalApplication = (data: ApplicationType) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/hospital/applications`, data, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const getHospitalApplications = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/hospital/applications`, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const getHospitalCalendar = (month: string, year: string) => {
+  const payload = {
+    month, year
+  }
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/hospital/calendar`, {
+        params: payload,
+        ...dataHeader()
+      })
       .then((res: any) => {
         resolve(res);
       })
@@ -249,3 +361,118 @@ export const deleteGuestDonor = (id: string) => {
       });
   });
 };
+
+// **Transaction API**
+// Create Transaction
+export const createTransaction = (data: TransactionForm) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/application`, data, dataHeader())  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Get All Transactions
+export const getTransactions = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/hospital/applications`, dataHeader())  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Update Transaction
+export const updateTransaction = (applicationId: string, data:TransactionForm) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/application/${applicationId}`, data, dataHeader())  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Update Transaction Status
+export const updateTransactionStatus = (applicationId: string, status: string) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/application-status/${applicationId}`, { status }, dataHeader())  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Delete Transaction
+export const deleteTransaction = (applicationId: string) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .delete(`${import.meta.env.VITE_API_URL}/application-status/${applicationId}`, dataHeader())  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Generate Donor Number
+export const generateDonorNumber = (data: { donorId: string }) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/generate-donor-number`, data, dataHeader())  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Get Donor Number
+export const getDonorNumber = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/generate-donor-number`, dataHeader())  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Delete Donor Number
+export const deleteDonorNumber = (data: { donorId: string }) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .delete(`${import.meta.env.VITE_API_URL}/generate-donor-number`, { data, ...dataHeader() })  // Added dataHeader()
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+
