@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { format } from 'date-fns'
+import { format, parse } from 'date-fns'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Clock, CalendarIcon, MapPin, User } from 'lucide-react'
 import { Log } from './logs-viewer'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface TransactionModalProps {
   isOpen: boolean
@@ -20,13 +20,11 @@ interface TransactionModalProps {
 
 export function TransactionModal({ isOpen, onClose, transaction, onUpdate, onDelete }: TransactionModalProps) {
   const [newDate, setNewDate] = useState<Date | undefined>(new Date(transaction.datetime))
-  const [newTime, setNewTime] = useState(format(new Date(transaction.datetime), 'HH:mm'))
+  const [newTime, setNewTime] = useState(format(new Date(transaction.datetime), 'hh:mm a'))
 
   const handleUpdate = () => {
     if (newDate) {
-      const [hours, minutes] = newTime.split(':').map(Number)
-      const updatedDateTime = new Date(newDate)
-      updatedDateTime.setHours(hours, minutes)
+      const updatedDateTime = parse(newTime, 'hh:mm a', newDate)
       onUpdate(transaction._id, updatedDateTime)
       onClose()
     }
@@ -38,6 +36,23 @@ export function TransactionModal({ isOpen, onClose, transaction, onUpdate, onDel
   }
 
   const isPending = transaction.status === 'PENDING'
+
+  const generateTimeOptions = () => {
+    const options = []
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const period = hour < 12 ? 'AM' : 'PM'
+        const displayHour = hour % 12 || 12
+        const time = `${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${period}`
+        options.push(
+          <SelectItem key={time} value={time}>
+            {time}
+          </SelectItem>
+        )
+      }
+    }
+    return options
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -76,20 +91,20 @@ export function TransactionModal({ isOpen, onClose, transaction, onUpdate, onDel
                   mode="single"
                   selected={newDate}
                   onSelect={setNewDate}
-                  disabled={(date) => date < new Date()}
                   initialFocus
                   className="border rounded-md"
                 />
               </div>
               <div className="flex flex-col space-y-2">
                 <Label htmlFor="time">Time</Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={newTime}
-                  onChange={(e) => setNewTime(e.target.value)}
-                  className="w-full"
-                />
+                <Select value={newTime} onValueChange={setNewTime}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generateTimeOptions()}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           ) : (
@@ -101,7 +116,7 @@ export function TransactionModal({ isOpen, onClose, transaction, onUpdate, onDel
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <Clock className="w-4 h-4 text-gray-500" />
-                <span>{format(new Date(transaction.datetime), 'h:mm a')}</span>
+                <span>{format(new Date(transaction.datetime), 'hh:mm a')}</span>
               </div>
             </div>
           )}

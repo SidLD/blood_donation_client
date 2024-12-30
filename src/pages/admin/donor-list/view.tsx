@@ -9,57 +9,106 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Donor, DonorData } from '@/types/user'
 import { CertifiedDonorsTab } from './_components/certified-donor-tab'
 import { VerifyDonorIdTab } from './_components/donor-number-tab'
 import { NewDonorsTab } from './_components/new-donor-tab'
-import { generateDonorNumber } from '@/lib/api'
+import { generateDonorNumber, getHospitalDonorsByCategory } from '@/lib/api'
+import { Donor } from '@/types/user'
 
-type DonorView = 'certified' | 'new' | 'verify'
+export type DonorView = 'certified' | 'new' | 'verify'
+
+export interface Transaction {
+  _id: string;
+  user: string;
+  datetime: string;
+  status: string;
+  hospital: string;
+  createdAt: string;
+  updatedAt: string;
+  remarks?: string;
+}
+
+export interface DonorNumber {
+  _id: string;
+  donorId: string;
+  isUsed: boolean;
+  isVerified: boolean;
+  hospital: string;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface DonorData {
+  certified: Donor[];
+  new: Donor[];
+}
 
 export default function DonorsPage() {
   const [view, setView] = useState<DonorView>('certified')
   const [searchQuery, setSearchQuery] = useState('')
-  const [donorData, _setDonorData] = useState<DonorData>({ certified: [], new: [] })
-  const [filteredDonors, setFilteredDonors] = useState<Donor[]>([])
+  const [donorData, setDonorData] = useState<DonorData>({ certified: [], new: [] })
+  const [filteredDonors, setFilteredDonors] = useState<DonorData>({ certified: [], new: [] })
   const [isLoading, setIsLoading] = useState(true)
   const [showDonorIdModal, setShowDonorIdModal] = useState(false)
   const [donorIdInput, setDonorIdInput] = useState('')
 
-  // Simulate API fetch
-  useEffect(() => {
-    const fetchDonors = async () => {
-      setIsLoading(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      // setDonorData([])
-      if (view !== 'verify') {
-        // setFilteredDonors(dummyDonorData[view])
-      } else {
-        setFilteredDonors([])
+  const fetchDonors = async () => {
+    setIsLoading(true);
+    try {
+      const {data} = await getHospitalDonorsByCategory() as unknown as any
+      if(data.length){
+        const categorizedDonors: DonorData = {
+          certified: data.filter((donor: any) => donor.isCertified),
+          new: data.filter((donor: any) => !donor.isCertified)
+        };
+        setDonorData(categorizedDonors);
       }
-      setIsLoading(false)
+    } catch (error) {
+      console.error('Error fetching donors:', error);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    fetchDonors()
-  }, [view])
+  const filterDonor = () => {
+    setFilteredDonors({
+      certified: donorData.certified,
+      new: donorData.new
+    })
+  }
 
-  // Handle search
   useEffect(() => {
-    if (view === 'verify') return; // No need to filter for 'verify' view
+    fetchDonors()
+  }, [])
+  
+  useEffect(() => {
+    filterDonor()
+  }, [view, donorData])
 
-    const donors = donorData[view]
-    if (searchQuery.trim() === '') {
-      setFilteredDonors(donors)
-      return
+  useEffect(() => {
+    if (view === 'verify') {
+      setFilteredDonors({certified: [], new: []});
+      return;
     }
 
-    const query = searchQuery.toLowerCase()
-    const filtered = donors.filter(donor => 
-      donor.donorId.toLowerCase().includes(query) ||
-      donor.username?.toLowerCase().includes(query) ||
-      donor.bloodType.toLowerCase().includes(query)
-    )
-    setFilteredDonors(filtered)
+    if (searchQuery.trim() === '') {
+      setFilteredDonors(donorData);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered: DonorData = {
+      certified: donorData.certified.filter(donor => 
+        donor.donorNumbers.donorId.toLowerCase().includes(query) ||
+        donor.username.toLowerCase().includes(query) ||
+        donor.bloodType.toLowerCase().includes(query)
+      ),
+      new: donorData.new.filter(donor => 
+        donor.donorNumbers.donorId.toLowerCase().includes(query) ||
+        donor.username.toLowerCase().includes(query) ||
+        donor.bloodType.toLowerCase().includes(query)
+      )
+    };
+    setFilteredDonors(filtered);
   }, [searchQuery, donorData, view])
 
   const handleVerifyDonorId = async () => {
@@ -132,13 +181,13 @@ export default function DonorsPage() {
         <div className="bg-[#D88E8E] p-6 rounded-lg">
           {view === 'certified' && (
             <CertifiedDonorsTab 
-              donors={filteredDonors} 
+              donors={filteredDonors.certified} 
               isLoading={isLoading} 
             />
           )}
           {view === 'new' && (
             <NewDonorsTab 
-              donors={filteredDonors} 
+              donors={filteredDonors.new} 
               isLoading={isLoading} 
             />
           )}

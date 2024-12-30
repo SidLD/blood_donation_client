@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
-import { Donor } from "@/types/user"
 import { Mail, Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -10,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import emailjs from '@emailjs/browser'
+import { Donor } from '@/types/user'
 
 interface CertifiedDonorsTabProps {
   donors: Donor[]
@@ -96,6 +96,7 @@ export function CertifiedDonorsTab({ donors, isLoading }: CertifiedDonorsTabProp
                   <TableHead className="text-white">Donor ID</TableHead>
                   <TableHead className="text-white">Name</TableHead>
                   <TableHead className="text-white">Blood Type</TableHead>
+                  <TableHead className="text-white">Email</TableHead>
                   <TableHead className="text-white">Status</TableHead>
                   <TableHead className="text-white">Actions</TableHead>
                 </TableRow>
@@ -103,9 +104,10 @@ export function CertifiedDonorsTab({ donors, isLoading }: CertifiedDonorsTabProp
               <TableBody>
                 {donors.map((donor) => (
                   <TableRow key={donor._id} className="text-white/90 hover:bg-white/5">
-                    <TableCell>{donor.donorId}</TableCell>
+                    <TableCell>{donor.donorNumbers.donorId}</TableCell>
                     <TableCell>{donor.username}</TableCell>
                     <TableCell>{donor.bloodType}</TableCell>
+                    <TableCell>{donor.email}</TableCell>
                     <TableCell>{donor.status}</TableCell>
                     <TableCell>
                       <TooltipProvider>

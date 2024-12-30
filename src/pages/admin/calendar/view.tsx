@@ -61,7 +61,7 @@ export default function HospitalCalendar(): JSX.Element {
       const { data } = await getHospitalCalendar(month, year) as unknown as any
       
       if(data.length) {
-         const formattedData: CalendarData = data.reduce((acc: CalendarData, transaction: Transaction) => {
+        const formattedData: CalendarData = data.reduce((acc: CalendarData, transaction: Transaction) => {
         const dateStr = format(new Date(transaction.datetime), 'yyyy-MM-dd')
         if (!acc[dateStr]) {
           acc[dateStr] = {
@@ -80,7 +80,6 @@ export default function HospitalCalendar(): JSX.Element {
         })
         return acc
       }, {})
-
       setCalendarData(formattedData)
       }
     } catch (error) {
@@ -214,13 +213,12 @@ export default function HospitalCalendar(): JSX.Element {
 
     const dayData = calendarData[selectedDate]
     const date = parseISO(selectedDate)
-
-    const timeSlots: string[] = Array.from({ length: 24 }, (_, i) => 
-      `${i.toString().padStart(2, '0')}:00`
+    const timeSlots: string[] = Array.from({ length: 48 }, (_, i) => 
+        i%2 == 1 ? `${i.toString().padStart(2, '0')}:00` : `${i.toString().padStart(2, '0')}:30`
     )
 
     return (
-      <div className="p-6 bg-[#F8EFEF] rounded-lg h-full flex flex-col">
+      <div className="p-6 bg-[#F8EFEF] rounded-lg h-full flex flex-col ">
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => setSelectedDate(null)}
@@ -241,7 +239,7 @@ export default function HospitalCalendar(): JSX.Element {
           </div>
         </div>
 
-        <div className="relative flex-grow overflow-y-auto">
+        <div className="relative flex-grow overflow-y-auto ">
           <div className="absolute left-0 text-sm text-gray-500">Manila Time</div>
           <div className="mt-8 space-y-6">
             {isLoading ? (
@@ -259,7 +257,6 @@ export default function HospitalCalendar(): JSX.Element {
                 const appointment = dayData?.appointments.find(
                   (a) => a.time === time
                 )
-
                 return (
                   <div key={time} className="relative">
                     <div className="absolute w-24 text-right text-gray-600 -left-24">

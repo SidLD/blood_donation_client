@@ -7,11 +7,10 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
-import {  TransactionForm } from '@/types/transaction'
-import { getHospitals, createTransaction } from '@/lib/api'
+import { TransactionForm } from '@/types/transaction'
+import { getHospitals, createDonorTransaction } from '@/lib/api'
 import { DatePicker } from '@/components/ui/datepicker'
 import { auth } from '@/lib/services'
-
 
 export default function AppointmentForm() {
   const [hospitals, setHospitals] = useState<{ _id: string; username: string; address: string }[]>([])
@@ -22,7 +21,7 @@ export default function AppointmentForm() {
     remarks: ''
   })
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const [selectedTime, setSelectedTime] = useState<string>('08:00') // Default time
+  const [selectedTime, setSelectedTime] = useState<string>('08:00 AM') // Default time
   const { toast } = useToast()
 
   useEffect(() => {
@@ -64,16 +63,18 @@ export default function AppointmentForm() {
       }
 
       // Combine selectedDate and selectedTime into a single Date object
-      const [hours, minutes] = selectedTime.split(':').map(Number)
+      const [time, period] = selectedTime.split(' ')
+      const [hours, minutes] = time.split(':').map(Number)
       const datetime = new Date(selectedDate)
-      datetime.setHours(hours, minutes)
+      datetime.setHours(period === 'PM' && hours !== 12 ? hours + 12 : hours === 12 && period === 'AM' ? 0 : hours)
+      datetime.setMinutes(minutes)
 
       const newTransaction: TransactionForm = {
         ...transaction,
         user: auth.getUserInfo()._id,
         datetime
       }
-      await createTransaction(newTransaction)
+      await createDonorTransaction(newTransaction)
       toast({
         title: 'Appointment Requested',
         description: 'Your appointment request has been submitted.'
@@ -86,7 +87,7 @@ export default function AppointmentForm() {
         remarks: ''
       })
       setSelectedDate(undefined)
-      setSelectedTime('08:00')
+      setSelectedTime('08:00 AM')
     } catch (error) {
       console.error('Error creating transaction:', error)
       toast({
@@ -95,6 +96,24 @@ export default function AppointmentForm() {
         variant: 'destructive'
       })
     }
+  }
+
+  // Generate time options every 30 minutes in 12-hour format
+  const generateTimeOptions = () => {
+    const options = []
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const period = hour < 12 ? 'AM' : 'PM'
+        const displayHour = hour % 12 || 12
+        const time = `${String(displayHour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${period}`
+        options.push(
+          <SelectItem key={time} value={time}>
+            {time}
+          </SelectItem>
+        )
+      }
+    }
+    return options
   }
 
   return (
@@ -115,13 +134,7 @@ export default function AppointmentForm() {
               <SelectValue placeholder="Select time" />
             </SelectTrigger>
             <SelectContent>
-              {Array.from({ length: 24 }, (_, i) =>
-                ['00', '30'].map(minute => (
-                  <SelectItem key={`${i}:${minute}`} value={`${String(i).padStart(2, '0')}:${minute}`}>
-                    {`${String(i).padStart(2, '0')}:${minute}`}
-                  </SelectItem>
-                ))
-              )}
+              {generateTimeOptions()}
             </SelectContent>
           </Select>
         </div>

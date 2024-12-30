@@ -33,6 +33,14 @@ export interface DonorType {
     date: Date;
     hospital: IHospitalType;
   }
+
+  export interface HospitalApplicationForm {
+    _id: string;
+    user: DonorType | IGuestDonorType;
+    remarks: string,
+    datetime: Date;
+    status: string
+  }
   
   export interface IGuestDonorType {
     _id: string;

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
-import { Donor } from "@/types/user"
-import { Loader2 } from 'lucide-react'
+import { Loader2, Mail } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -12,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import emailjs from '@emailjs/browser'
 import { deleteDonorNumber, generateDonorNumber } from '@/lib/api'
+import { Donor } from '@/types/user'
 
 interface NewDonorsTabProps {
   donors: Donor[]
@@ -20,7 +20,7 @@ interface NewDonorsTabProps {
 
 export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
-  const [selectedDonor, _setSelectedDonor] = useState<Donor | null>(null)
+  const [selectedDonor, setSelectedDonor] = useState<Donor | null>(null)
   const [formData, setFormData] = useState({
     subject: '',
     message: ''
@@ -28,7 +28,6 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
   const [status, setStatus] = useState('')
   const [isSending, setIsSending] = useState(false)
 
-  // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prevData => ({
@@ -37,11 +36,10 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
     }))
   }
 
-  // Send email function
-  // const handleSendEmail = (donor: Donor) => {
-  //   setSelectedDonor(donor)
-  //   setIsEmailModalOpen(true)
-  // }
+  const handleSendEmail = (donor: Donor) => {
+    setSelectedDonor(donor)
+    setIsEmailModalOpen(true)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,7 +75,6 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
     }
   }
 
-  // Handle donor number generation
   const handleGenerateDonorNumber = async (donorId: string) => {
     try {
       await generateDonorNumber({ donorId })
@@ -87,7 +84,6 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
     }
   }
 
-  // Handle donor number deletion
   const handleDeleteDonorNumber = async (donorId: string) => {
     try {
       await deleteDonorNumber({ donorId })
@@ -162,6 +158,22 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
                             <p>Delete the donor number for this donor</p>
                           </TooltipContent>
                         </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSendEmail(donor)}
+                            >
+                              <Mail className="w-4 h-4 mr-2" />
+                              Send Email
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Send an email to this donor</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </TooltipProvider>
                     </TableCell>
                   </TableRow>
@@ -229,3 +241,4 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
     </Card>
   )
 }
+

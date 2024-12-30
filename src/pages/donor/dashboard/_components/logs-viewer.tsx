@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -24,7 +24,6 @@ export interface Log {
   updatedAt: string
   __v: number
 }
-
 
 async function deleteTransaction(id: string): Promise<void> {
   const response = await fetch(`/api/transactions/${id}`, {
@@ -131,7 +130,7 @@ export default function LogsViewer() {
             {logs.map((log) => (
               <TableRow key={log._id}>
                 <TableCell className="font-medium text-white">
-                  {format(new Date(log.datetime), 'MMM d, yyyy HH:mm')}
+                  {format(parseISO(log.datetime), 'MMM d, yyyy hh:mm a')}
                 </TableCell>
                 <TableCell>
                   <Badge 

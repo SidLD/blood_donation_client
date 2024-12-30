@@ -45,11 +45,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { getTransactions, createTransaction, updateTransaction, deleteTransaction, getHospitals, getHospitalDonors } from '@/lib/api'
+import { getTransactions, updateTransaction, deleteTransaction, getHospitals, getHospitalDonors, createHospitalApplication } from '@/lib/api'
 import { Transaction, TransactionForm } from '@/types/transaction'
 import { auth } from '@/lib/services'
 import { Donor } from '@/types/user'
-
+import { format, parse } from 'date-fns'
 
 const transactionSchema = z.object({
   _id: z.string().optional(),
@@ -69,6 +69,23 @@ const BloodSupplyPage: React.FC = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const { toast } = useToast()
   
+  const { control, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof transactionSchema>>({
+    resolver: zodResolver(transactionSchema),
+    defaultValues: {
+      hospital: '',
+      datetime: new Date(),
+      status: 'PENDING',
+      remarks: '',
+      user: '',
+    }
+  })
+
+  useEffect(() => {
+    fetchHospitals()
+    fetchHospitalDonors()
+    fetchTransactions()
+  }, [])
+
   const fetchHospitals = async () => {
     try {
       const { data } = (await getHospitals()) as unknown as any
@@ -87,7 +104,7 @@ const BloodSupplyPage: React.FC = () => {
     }
   }
 
-  const fetchHospotalDonors = async () => {
+  const fetchHospitalDonors = async () => {
     try {
       const { data } = (await getHospitalDonors()) as unknown as any
       if (data.length > 0) {
@@ -96,57 +113,24 @@ const BloodSupplyPage: React.FC = () => {
         setDonors([])
       }
     } catch (error) {
-      console.error('Error fetching hospitals:', error)
+      console.error('Error fetching donors:', error)
       toast({
         title: 'Error',
-        description: 'Failed to fetch hospitals. Please try again.',
+        description: 'Failed to fetch donors. Please try again.',
         variant: 'destructive'
       })
     }
   }
-  useEffect(() => {
-    fetchHospitals()
-    fetchHospotalDonors()
-  }, [])
-
-
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof transactionSchema>>({
-    resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      hospital: '',
-      datetime: new Date(),
-      status: 'PENDING',
-      remarks: '',
-      user: '',
-    }
-  })
-
-  const handleUpdateDonor = async (data: Transaction) => {
-    reset({
-      _id: data._id,
-      datetime: new Date(data.datetime),
-      user: data.user as unknown as string,
-      hospital: data.hospital._id as string,
-      remarks: data.remarks,
-      status: data.status,
-    })
-    setOpenModal(true)
-  }
-
-  useEffect(() => {
-    fetchTransactions()
-  }, [])
 
   const fetchTransactions = async () => {
     setIsLoading(true)
     try {
-      const {data} = await getTransactions() as unknown as any
-      if(data.length > 0){
+      const { data } = await getTransactions() as unknown as any
+      if (data.length > 0) {
         setTransactions(data)
-      }else{
+      } else {
         setTransactions([])
       }
-
     } catch (error) {
       console.error('Error fetching transactions:', error)
       toast({
@@ -159,16 +143,17 @@ const BloodSupplyPage: React.FC = () => {
     }
   }
 
-  const handleCreateTransaction = async (data:  z.infer<typeof transactionSchema>) => {
+  const handleCreateTransaction = async (data: z.infer<typeof transactionSchema>) => {
     try {
+      console.log(data)
       const payload: TransactionForm = {
         ...data,
-        hospital: data._id ? data.hospital : auth.getUserInfo()._id
+        hospital: auth.getUserInfo().id
       }
       if (data._id) {
         await updateTransaction(data._id, payload) as unknown as any
       } else {
-        await createTransaction(payload) as unknown as any
+        await createHospitalApplication(payload) as unknown as any
       }
       await fetchTransactions()
       setIsCreateDialogOpen(false)
@@ -188,6 +173,17 @@ const BloodSupplyPage: React.FC = () => {
     }
   }
 
+  const handleUpdateDonor = async (data: Transaction) => {
+    reset({
+      _id: data._id,
+      datetime: new Date(data.datetime),
+      user: data.user as unknown as string,
+      hospital: data.hospital._id as string,
+      remarks: data.remarks,
+      status: data.status,
+    })
+    setOpenModal(true)
+  }
 
   const handleDeleteTransaction = async (transactionId: string) => {
     try {
@@ -205,6 +201,17 @@ const BloodSupplyPage: React.FC = () => {
         variant: "destructive",
       })
     }
+  }
+
+  const openCreateDialog = () => {
+    reset({
+      hospital: '',
+      datetime: new Date(),
+      status: 'PENDING',
+      remarks: '',
+      user: '',
+    })
+    setIsCreateDialogOpen(true)
   }
 
   if (isLoading) {
@@ -233,7 +240,7 @@ const BloodSupplyPage: React.FC = () => {
           </h1>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" onClick={openCreateDialog}>
                 <Plus className="w-4 h-4 mr-2" /> Create Transaction
               </Button>
             </DialogTrigger>
@@ -247,29 +254,6 @@ const BloodSupplyPage: React.FC = () => {
               <form onSubmit={handleSubmit(handleCreateTransaction)}>
                 <div className="grid gap-4 py-4">
                   <div className="grid items-center grid-cols-4 gap-4">
-                    <Label htmlFor="hospital" className="text-right">
-                      Hospital
-                    </Label>
-                    <Controller
-                      name="hospital"
-                      control={control}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value} disabled={true}>
-                          <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Select Hospital" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {hospitals.map(hospital => (
-                              <SelectItem key={hospital._id} value={hospital._id}>
-                                {hospital.username} - {hospital.address}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {errors.hospital && <p className="text-sm text-red-500">{errors.hospital.message}</p>}
-                  
                     <Label htmlFor="donor" className="text-right">
                       Donor
                     </Label>
@@ -298,22 +282,43 @@ const BloodSupplyPage: React.FC = () => {
                     <Controller
                       name="datetime"
                       control={control}
-                      render={({ field }) => {
-                        const manilaDate = field.value ? new Date(field.value.getTime() + (8 * 60 * 60 * 1000)) : new Date();
-                        return (
+                      render={({ field }) => (
+                        <div className="flex col-span-3 gap-2">
                           <Input
-                            id="datetime"
-                            type="datetime-local"
-                            {...field}
-                            value={manilaDate.toISOString().slice(0, 16)}
+                            type="date"
+                            value={format(field.value, 'yyyy-MM-dd')}
                             onChange={(e) => {
-                              const date = new Date(e.target.value);
-                              field.onChange(new Date(date.getTime() - (8 * 60 * 60 * 1000)));
+                              const newDate = parse(e.target.value, 'yyyy-MM-dd', new Date());
+                              field.onChange(newDate);
                             }}
-                            className="col-span-3"
+                            className="flex-1"
                           />
-                        );
-                      }}
+                          <Select
+                            value={format(field.value, 'hh:mm a')}
+                            onValueChange={(time) => {
+                              const newDate = parse(time, 'hh:mm a', field.value);
+                              field.onChange(newDate);
+                            }}
+                          >
+                            <SelectTrigger className="flex-1">
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 24 * 2 }).map((_, index) => {
+                                const minutes = index * 30;
+                                const hour = Math.floor(minutes / 60);
+                                const minute = minutes % 60;
+                                const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                return (
+                                  <SelectItem key={time} value={format(parse(time, 'HH:mm', new Date()), 'hh:mm a')}>
+                                    {format(parse(time, 'HH:mm', new Date()), 'hh:mm a')}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     />
                     {errors.datetime && <p className="text-sm text-red-500">{errors.datetime.message}</p>}
                   </div>
@@ -381,7 +386,7 @@ const BloodSupplyPage: React.FC = () => {
             {transactions.map((transaction) => (
               <TableRow key={transaction._id}>
                 <TableCell>{transaction.hospital.username}</TableCell>
-                <TableCell>{new Date(transaction.datetime).toLocaleString('en-US', { timeZone: 'Asia/Manila' })}</TableCell>
+                <TableCell>{format(new Date(transaction.datetime), 'MMM d, yyyy hh:mm a')}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                     transaction.status === 'PENDING' ? 'bg-yellow-200 text-yellow-800' :
@@ -489,22 +494,43 @@ const BloodSupplyPage: React.FC = () => {
                     <Controller
                       name="datetime"
                       control={control}
-                      render={({ field }) => {
-                        const manilaDate = field.value ? new Date(field.value.getTime() + (8 * 60 * 60 * 1000)) : new Date();
-                        return (
+                      render={({ field }) => (
+                        <div className="flex col-span-3 gap-2">
                           <Input
-                            id="edit-datetime"
-                            type="datetime-local"
-                            {...field}
-                            value={manilaDate.toISOString().slice(0, 16)}
+                            type="date"
+                            value={format(field.value, 'yyyy-MM-dd')}
                             onChange={(e) => {
-                              const date = new Date(e.target.value);
-                              field.onChange(new Date(date.getTime() - (8 * 60 * 60 * 1000)));
+                              const newDate = parse(e.target.value, 'yyyy-MM-dd', new Date());
+                              field.onChange(newDate);
                             }}
-                            className="col-span-3"
+                            className="flex-1"
                           />
-                        );
-                      }}
+                          <Select
+                            value={format(field.value, 'hh:mm a')}
+                            onValueChange={(time) => {
+                              const newDate = parse(time, 'hh:mm a', field.value);
+                              field.onChange(newDate);
+                            }}
+                          >
+                            <SelectTrigger className="flex-1">
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 24 * 2 }).map((_, index) => {
+                                const minutes = index * 30;
+                                const hour = Math.floor(minutes / 60);
+                                const minute = minutes % 60;
+                                const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                                return (
+                                  <SelectItem key={time} value={format(parse(time, 'HH:mm', new Date()), 'hh:mm a')}>
+                                    {format(parse(time, 'HH:mm', new Date()), 'hh:mm a')}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     />
                     {errors.datetime && <p className="text-sm text-red-500">{errors.datetime.message}</p>}
                   </div>

@@ -37,7 +37,7 @@ export const registerAdmin = (data: AdminType) => {
 export const getHospitals = () => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/hospitals`, dataHeader())  // Added dataHeader()
+      .get(`${import.meta.env.VITE_API_URL}/hospitals`, dataHeader())  
       .then((res: any) => {
         resolve(res);
       })
@@ -116,7 +116,20 @@ export const updateDonorPassword = (data: any) => {
 export const getHospitalDonors = () => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/admin/donors`, dataHeader())  // Added dataHeader()
+      .get(`${import.meta.env.VITE_API_URL}/admin/donors`, dataHeader())  
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const getHospitalDonorsByCategory = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/admin/donors/category`, dataHeader())  
       .then((res: any) => {
         resolve(res);
       })
@@ -152,11 +165,10 @@ export const getDonorApplications = () => {
       });
   });
 };
-
-export const createHospitalApplication = (data: ApplicationType) => {
+export const createHospitalApplication = (data: TransactionForm) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/hospital/applications`, data, dataHeader())
+      .post(`${import.meta.env.VITE_API_URL}/hospital/application`, data, dataHeader())
       .then((res: any) => {
         resolve(res);
       })
@@ -364,10 +376,10 @@ export const deleteGuestDonor = (id: string) => {
 
 // **Transaction API**
 // Create Transaction
-export const createTransaction = (data: TransactionForm) => {
+export const createDonorTransaction = (data: TransactionForm) => {
   return new Promise((resolve, reject) => {
     axios
-      .post(`${import.meta.env.VITE_API_URL}/application`, data, dataHeader())  // Added dataHeader()
+      .post(`${import.meta.env.VITE_API_URL}/donor/application`, data, dataHeader())  // Added dataHeader()
       .then((res: any) => {
         resolve(res);
       })
