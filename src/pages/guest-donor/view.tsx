@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,7 +11,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
-import { createGuestDonor } from "@/lib/api"
+import { createGuestDonor, getHospitals } from "@/lib/api"
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as const
 
@@ -53,9 +53,34 @@ const GuestDonorView: React.FC = () => {
   const currentDate = new Date()
   const currentMonth = currentDate.toLocaleString('default', { month: 'long' })
   const currentYear = currentDate.getFullYear()
+  const [hospitals, setHospitals] = useState<{ _id: string; username: string; address: string }[]>([])
+
 
   const dates = ['4', '5', '8', '10', '23', '27', '28', '30', '31']
   const times = ['8:00 AM', '8:45 AM', '9:20 AM', '1:00 PM']
+
+  useEffect(() => {
+    fetchHospitals()
+  }, [])
+
+  const fetchHospitals = async () => {
+    try {
+      const { data } = (await getHospitals()) as unknown as any
+      if (data.length > 0) {
+        setHospitals(data)
+      } else {
+        setHospitals([])
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch hospitals. Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
+
 
   const onSubmit = async () => {
     try {
@@ -259,7 +284,13 @@ const GuestDonorView: React.FC = () => {
                   <SelectValue placeholder="Select hospital" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="calbayog">Calbayog District Hospital</SelectItem>
+                <SelectContent>
+                  {hospitals.map(hospital => (
+                    <SelectItem key={hospital._id} value={hospital._id}>
+                      {hospital.username} - {hospital.address}
+                    </SelectItem>
+                  ))}
+          </SelectContent>
                 </SelectContent>
               </Select>
             </div>

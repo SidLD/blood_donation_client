@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
-import { User } from 'lucide-react'
+import React, { useState } from 'react'
+import { User, Eye, EyeOff } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -28,10 +28,14 @@ import { registerDonor } from '@/lib/api'
 import { type DonorType } from '@/types/interface'
 
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as const
+const genders = ['Male', 'Female', 'Other'] as const
 
 const donorSchema = z.object({
   username: z.string().min(2, {
     message: "Username must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
   }),
   address: z.string().min(5, {
     message: "Address must be at least 5 characters.",
@@ -45,6 +49,14 @@ const donorSchema = z.object({
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
   }),
+  age: z.number().min(18, {
+    message: "You must be at least 18 years old to register.",
+  }).max(65, {
+    message: "You must be 65 years old or younger to register.",
+  }),
+  gender: z.enum(genders, {
+    required_error: "Please select a gender.",
+  }),
   bloodType: z.enum(bloodTypes, {
     required_error: "Please select a blood type.",
   }),
@@ -53,23 +65,26 @@ const donorSchema = z.object({
 const DonorSignUpView: React.FC = () => {
   const router = useNavigate()
   const { toast } = useToast()
+  const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm<z.infer<typeof donorSchema>>({
     resolver: zodResolver(donorSchema),
     defaultValues: {
       username: "",
+      email: "",
       address: "",
       cellphoneNumber: "",
       donorId: "",
       password: "",
+      age: undefined,
+      gender: undefined,
       bloodType: undefined,
     },
   })
 
   const onSubmit = async (values: z.infer<typeof donorSchema>) => {
-    // Simulating an API call
-    await registerDonor(values as unknown as DonorType)
-    .then(() => {
+    try {
+      await registerDonor(values as unknown as DonorType)
       toast({
         title: "Registration Successful",
         description: "You will be redirected to the login shortly.",
@@ -77,10 +92,14 @@ const DonorSignUpView: React.FC = () => {
       setTimeout(() => {
         router('/donor')
       }, 1000)
-    })
-    .catch((err:any) => {
+    } catch (err: any) {
       console.log(err)
-    })
+      toast({
+        title: "Registration Failed",
+        description: "An error occurred during registration. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -106,6 +125,23 @@ const DonorSignUpView: React.FC = () => {
                   <FormControl>
                     <Input 
                       placeholder="Username"
+                      className="bg-white border-none h-12 text-[#3D0000] placeholder:text-[#3D0000]/70"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input 
+                      type="email"
+                      placeholder="Email"
                       className="bg-white border-none h-12 text-[#3D0000] placeholder:text-[#3D0000]/70"
                       {...field}
                     />
@@ -168,13 +204,63 @@ const DonorSignUpView: React.FC = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
+                    <div className="relative">
+                      <Input 
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        className="bg-white border-none h-12 text-[#3D0000] placeholder:text-[#3D0000]/70 pr-10"
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#3D0000]"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="age"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
                     <Input 
-                      type="password"
-                      placeholder="Password"
+                      type="number"
+                      placeholder="Age"
                       className="bg-white border-none h-12 text-[#3D0000] placeholder:text-[#3D0000]/70"
                       {...field}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="bg-white border-none h-12 text-[#3D0000] placeholder:text-[#3D0000]/70">
+                        <SelectValue placeholder="Select Gender" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {genders.map((gender) => (
+                        <SelectItem key={gender} value={gender}>
+                          {gender}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

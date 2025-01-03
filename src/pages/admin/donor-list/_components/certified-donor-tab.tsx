@@ -21,7 +21,10 @@ export function CertifiedDonorsTab({ donors, isLoading }: CertifiedDonorsTabProp
   const [selectedDonor, setSelectedDonor] = useState<Donor | null>(null)
   const [formData, setFormData] = useState({
     subject: '',
-    message: ''
+    message: '',
+    date: '',
+    time: '',
+    hospital: ''
   })
   const [status, setStatus] = useState('')
   const [isSending, setIsSending] = useState(false)
@@ -42,9 +45,9 @@ export function CertifiedDonorsTab({ donors, isLoading }: CertifiedDonorsTabProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const { subject, message } = formData
+    const { subject, message, date, time, hospital } = formData
 
-    if (!subject || !message) {
+    if (!subject || !message || !date || !time || !hospital) {
       setStatus("Please fill in all fields.")
       return
     }
@@ -54,19 +57,24 @@ export function CertifiedDonorsTab({ donors, isLoading }: CertifiedDonorsTabProp
     try {
       await emailjs.send(
         "service_ggd75wn", 
-        "template_1y93iy2",  
+        "template_dd47fkb",  
         {
-          fullName: selectedDonor?.username,
+          to_name: selectedDonor?.username,
+          from_name: "BloodLinkSave",
+          message: message,
+          date: date,
+          time: time,
+          hospital: hospital,
+          subject: subject,
           email: selectedDonor?.email,
-          subject,
-          message,
         },
-        "_dY3cpAn70Y3oTEjp" 
+        'AOsCEplMEuTsMKD2c'
       )
       setStatus("Message sent successfully!")
-      setFormData({ subject: "", message: "" })
+      setFormData({ subject: "", message: "", date: "", time: "", hospital: "" })
       setIsEmailModalOpen(false)
     } catch (error) {
+      console.log(error)
       setStatus("An error occurred. Please try again later.")
     } finally {
       setIsSending(false)
@@ -161,10 +169,49 @@ export function CertifiedDonorsTab({ donors, isLoading }: CertifiedDonorsTabProp
                   <Textarea
                     id="message"
                     name="message"
+                    placeholder=''
                     value={formData.message}
                     onChange={handleInputChange}
                     className="col-span-3"
                     rows={4}
+                  />
+                </div>
+                <div className="grid items-center grid-cols-4 gap-4">
+                  <Label htmlFor="date" className="text-right">
+                    Date
+                  </Label>
+                  <Input
+                    id="date"
+                    name="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid items-center grid-cols-4 gap-4">
+                  <Label htmlFor="time" className="text-right">
+                    Time
+                  </Label>
+                  <Input
+                    id="time"
+                    name="time"
+                    type="time"
+                    value={formData.time}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid items-center grid-cols-4 gap-4">
+                  <Label htmlFor="hospital" className="text-right">
+                    Location
+                  </Label>
+                  <Input
+                    id="hospital"
+                    name="hospital"
+                    value={formData.hospital}
+                    onChange={handleInputChange}
+                    className="col-span-3"
                   />
                 </div>
               </div>

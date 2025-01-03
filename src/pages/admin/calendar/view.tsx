@@ -32,10 +32,15 @@ interface Transaction {
     _id: string;
     username: string;
   };
+  guestDonor: {
+    _id: string;
+    username: string;
+  };
   datetime: string;
   status: string;
   hospital: string;
   remarks: string;
+  type: 'GUEST-APPOINTMENT' | 'MEMBER-APPOINTMENT'
 }
 
 
@@ -74,7 +79,7 @@ export default function HospitalCalendar(): JSX.Element {
         acc[dateStr].appointments.push({
           id: transaction._id,
           time: format(new Date(transaction.datetime), 'HH:mm'),
-          patientName: transaction.user.username,
+          patientName:  transaction.type == 'MEMBER-APPOINTMENT' ? transaction.user.username : transaction.guestDonor.username,
           screeningType: 'Blood Donation',
           bloodUnits: 1
         })

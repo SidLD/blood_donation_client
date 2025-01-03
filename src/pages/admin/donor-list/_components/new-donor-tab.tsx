@@ -7,10 +7,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import emailjs from '@emailjs/browser'
-import { deleteDonorNumber, generateDonorNumber } from '@/lib/api'
 import { Donor } from '@/types/user'
 
 interface NewDonorsTabProps {
@@ -23,7 +21,10 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
   const [selectedDonor, setSelectedDonor] = useState<Donor | null>(null)
   const [formData, setFormData] = useState({
     subject: '',
-    message: ''
+    message: '',
+    date: '',
+    time: '',
+    hospital: ''
   })
   const [status, setStatus] = useState('')
   const [isSending, setIsSending] = useState(false)
@@ -44,9 +45,9 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const { subject, message } = formData
+    const { subject, message, date, time, hospital } = formData
 
-    if (!subject || !message) {
+    if (!subject || !message || !date || !time || !hospital) {
       setStatus("Please fill in all fields.")
       return
     }
@@ -55,41 +56,28 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
 
     try {
       await emailjs.send(
-        "service_pfbnfjp", 
-        "template_30pixmg",  
+        "service_ggd75wn", 
+        "template_dd47fkb",  
         {
-          fullName: selectedDonor?.username,
+          to_name: selectedDonor?.username,
+          from_name: "BloodLinkSave",
+          message: message,
+          date: date,
+          time: time,
+          hospital: hospital,
+          subject: subject,
           email: selectedDonor?.email,
-          subject,
-          message,
         },
-        "_dY3cpAn70Y3oTEjp" 
+        'AOsCEplMEuTsMKD2c'
       )
       setStatus("Message sent successfully!")
-      setFormData({ subject: "", message: "" })
+      setFormData({ subject: "", message: "", date: "", time: "", hospital: "" })
       setIsEmailModalOpen(false)
     } catch (error) {
+      console.log(error)
       setStatus("An error occurred. Please try again later.")
     } finally {
       setIsSending(false)
-    }
-  }
-
-  const handleGenerateDonorNumber = async (donorId: string) => {
-    try {
-      await generateDonorNumber({ donorId })
-      setStatus("Donor number generated successfully!")
-    } catch (error) {
-      setStatus("Error generating donor number.")
-    }
-  }
-
-  const handleDeleteDonorNumber = async (donorId: string) => {
-    try {
-      await deleteDonorNumber({ donorId })
-      setStatus("Donor number deleted successfully!")
-    } catch (error) {
-      setStatus("Error deleting donor number.")
     }
   }
 
@@ -123,43 +111,13 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
               <TableBody>
                 {donors.map((donor) => (
                   <TableRow key={donor._id} className="text-white/90 hover:bg-white/5">
-                    <TableCell>{donor.donorId}</TableCell>
+                    <TableCell>{donor.donorNumbers.donorId}</TableCell>
                     <TableCell>{donor.username}</TableCell>
                     <TableCell>{donor.bloodType}</TableCell>
                     <TableCell>{donor.status}</TableCell>
                     <TableCell>
                       <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleGenerateDonorNumber(donor.donorId)}
-                            >
-                              Generate Donor Number
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Generate a new donor number for this donor</p>
-                          </TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteDonorNumber(donor.donorId)}
-                            >
-                              Delete Donor Number
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Delete the donor number for this donor</p>
-                          </TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
+                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
@@ -183,7 +141,7 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
           </div>
         )}
 
-        <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
+<Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Send Email to {selectedDonor?.username}</DialogTitle>
@@ -209,10 +167,49 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
                   <Textarea
                     id="message"
                     name="message"
+                    placeholder=''
                     value={formData.message}
                     onChange={handleInputChange}
                     className="col-span-3"
                     rows={4}
+                  />
+                </div>
+                <div className="grid items-center grid-cols-4 gap-4">
+                  <Label htmlFor="date" className="text-right">
+                    Date
+                  </Label>
+                  <Input
+                    id="date"
+                    name="date"
+                    type="date"
+                    value={formData.date}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid items-center grid-cols-4 gap-4">
+                  <Label htmlFor="time" className="text-right">
+                    Time
+                  </Label>
+                  <Input
+                    id="time"
+                    name="time"
+                    type="time"
+                    value={formData.time}
+                    onChange={handleInputChange}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid items-center grid-cols-4 gap-4">
+                  <Label htmlFor="hospital" className="text-right">
+                    Location
+                  </Label>
+                  <Input
+                    id="hospital"
+                    name="hospital"
+                    value={formData.hospital}
+                    onChange={handleInputChange}
+                    className="col-span-3"
                   />
                 </div>
               </div>
@@ -229,12 +226,7 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
                 </Button>
               </DialogFooter>
             </form>
-            {status && (
-              <Alert variant={status.includes("successfully") ? "default" : "destructive"}>
-                <AlertTitle>{status.includes("successfully") ? "Success" : "Error"}</AlertTitle>
-                <AlertDescription>{status}</AlertDescription>
-              </Alert>
-            )}
+            {status && <p className="mt-4 text-center text-white">{status}</p>}
           </DialogContent>
         </Dialog>
       </CardContent>

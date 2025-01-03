@@ -174,10 +174,17 @@ const BloodSupplyPage: React.FC = () => {
   }
 
   const handleUpdateDonor = async (data: Transaction) => {
+    let userId = data.type == 'MEMBER-APPOINTMENT' ? 
+    data?.user ? data.user._id : null : data?.guestDonor ? data.guestDonor._id : null;
+
+    if(data.type == 'GUEST-APPOINTMENT' && data.guestDonor && !donors.includes(data.guestDonor)){
+      setDonors([...donors, data.guestDonor])
+    }
+
     reset({
       _id: data._id,
       datetime: new Date(data.datetime),
-      user: data.user as unknown as string,
+      user: userId as unknown as string,
       hospital: data.hospital._id as string,
       remarks: data.remarks,
       status: data.status,
@@ -220,6 +227,16 @@ const BloodSupplyPage: React.FC = () => {
         <div className="text-center text-[#4A1515]">Loading...</div>
       </div>
     )
+  }
+
+  const getDonorName =  (transaction: Transaction): String => {
+    let username = 'N/A';
+    if(transaction.type == 'MEMBER-APPOINTMENT'){
+      username = transaction?.user ? username = transaction.user.username : 'N/A';
+    }else{
+      username = transaction?.guestDonor ? username = transaction.guestDonor.username : 'N/A';
+    }
+    return username
   }
 
   return (
@@ -266,7 +283,7 @@ const BloodSupplyPage: React.FC = () => {
                             <SelectValue placeholder="Select Donor" />
                           </SelectTrigger>
                           <SelectContent>
-                            {donors.map(donor => (
+                            {donors.filter(donor => donor.donorId).map(donor => (
                               <SelectItem key={donor._id} value={donor._id || ''}>
                                 {donor.username} - {donor.address}
                               </SelectItem>
@@ -397,7 +414,7 @@ const BloodSupplyPage: React.FC = () => {
                   </span>
                 </TableCell>
                 <TableCell>{transaction.remarks}</TableCell>
-                <TableCell>{transaction?.user ? transaction.user.username as string : 'N/A'}</TableCell>
+                <TableCell>{getDonorName(transaction)}</TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm" onClick={() => handleUpdateDonor(transaction)}>
                     <Edit className="w-4 h-4" />
