@@ -9,14 +9,21 @@ import { Button } from "@/components/ui/button"
 export default function GuestLayout() {
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
+
+  const goToViolation=(item:any)=>{
+    const url = window.location.href;
+    console.log(item)
+    const element =  document.getElementById(item.key)!
+    element.scrollIntoView({behavior:'smooth'});
+  };
   return (
-    <main className="min-h-screen bg-gradient-to-t from-black to-transparent bg-[#4b0c0c] flex flex-col relative">
+    <main className="relative flex flex-col min-h-screen bg-gradient-to-t">
       <img 
         src={background} 
         alt="background"
         className="absolute inset-0 z-0 object-cover w-full h-full"
       />
-      <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between p-6">
+      <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between p-12 shadow-lg">
         <div className="flex items-center gap-4">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
@@ -35,7 +42,7 @@ export default function GuestLayout() {
                   className="flex items-center justify-start gap-4 text-white hover:bg-red-700"
                   onClick={() => {
                     setIsOpen(false)
-                    navigate("/hero-section")
+                    goToViolation("Hero")
                   }}
                 >
                   <Home className="w-5 h-5" />
@@ -46,18 +53,7 @@ export default function GuestLayout() {
                   className="flex items-center justify-start gap-4 text-white hover:bg-red-700"
                   onClick={() => {
                     setIsOpen(false)
-                    navigate("/inventory")
-                  }}
-                >
-                  <Percent className="w-5 h-5" />
-                  <span className="text-lg">Inventory</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="flex items-center justify-start gap-4 text-white hover:bg-red-700"
-                  onClick={() => {
-                    setIsOpen(false)
-                    navigate("/what-to-know")
+                    goToViolation('WhatToKnow')
                   }}
                 >
                   <HelpCircle className="w-5 h-5" />
@@ -68,7 +64,7 @@ export default function GuestLayout() {
                   className="flex items-center justify-start gap-4 text-white hover:bg-red-700"
                   onClick={() => {
                     setIsOpen(false)
-                    navigate("/how-it-works")
+                    goToViolation("HowItWork")
                   }}
                 >
                   <LineChart className="w-5 h-5" />
@@ -94,14 +90,15 @@ export default function GuestLayout() {
         </div>
         <Button
           variant="ghost"
-          onClick={() => navigate("/about")}
+          onClick={() => navigate("/about-us")}
           className="text-xl font-semibold text-red-600 hover:bg-transparent"
         >
           ABOUT
         </Button>
       </header>
-
-      <Outlet />
+      <div className="pt-20">
+        <Outlet />
+      </div>
     </main>
   )
 }

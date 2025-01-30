@@ -97,26 +97,6 @@ const EventsViewPage: React.FC = () => {
       />
       <div className="fixed inset-0 z-10 pointer-events-none bg-gradient-to-t from-black/50 to-transparent" aria-hidden="true" />
 
-      <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between p-6 text-white/90">
-        <div className="flex items-center cursor-pointer" onClick={() => { navigate('/') }}>
-          <img width={60} src={logo} alt="logo" />
-          <span className="text-2xl font-bold">
-            {['B', 'L', 'O', 'O', 'D'].map((data, index) => 
-              <span key={index} className="transition-all duration-300 ease-in-out hover:text-red-600 hover:scale-105">{data}</span>)}
-          </span>
-          <span className="ml-2 text-sm font-bold">
-          {['L', 'i', 'n', 'k'].map((data, index) => 
-              <span key={index} className="transition-all duration-300 ease-in-out hover:text-red-600 hover:scale-105">{data}</span>)}
-          </span>
-        </div>
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center text-white hover:opacity-80"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          <span>Back to Home</span>
-        </button>
-      </div>
 
       <div className="relative z-20 p-8 mx-auto max-w-7xl">
         <h1 className="mt-16 mb-8 text-4xl font-bold text-center text-white">Events</h1>
