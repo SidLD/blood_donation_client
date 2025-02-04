@@ -68,7 +68,8 @@ export interface DonorType {
     startDate: Date;
     imgUrl?: string;
     location: string;
-    user?: AdminType
+    user?: AdminType;
+    post: boolean
   }
   
   export interface AdminType {

@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react'
-import { ref, deleteObject, getDownloadURL } from 'firebase/storage'
-import { ArrowLeft, Eye, Pencil, Trash } from 'lucide-react'
-import { Storage } from '@/lib/firebase'
-import { uploadImage } from '@/lib/upload'
-import { useNavigate } from 'react-router-dom'
-import { EventType } from '@/types/interface'
-import { createEvent, getEvents, updateEvent, deleteEvent } from '@/lib/api'
+import type React from "react"
+import { useState, useEffect } from "react"
+import { ref, deleteObject, getDownloadURL } from "firebase/storage"
+import { ArrowLeft, Eye, Pencil, Trash } from "lucide-react"
+import { Storage } from "@/lib/firebase"
+import { uploadImage } from "@/lib/upload"
+import { useNavigate } from "react-router-dom"
+import type { EventType } from "@/types/interface"
+import { createEvent, getEvents, updateEvent, deleteEvent, getHospitals } from "@/lib/api"
 import { Toaster } from "@/components/ui/toaster"
-import { useToast } from '@/hooks/use-toast'
-import { Button } from '@/components/ui/button'
+import { useToast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -24,7 +25,8 @@ import {
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { z } from "zod"
-import { format, toZonedTime } from 'date-fns-tz'
+import { format, toZonedTime } from "date-fns-tz"
+import { Switch } from "@/components/ui/switch"
 
 const eventSchema = z.object({
   title: z.string({ required_error: "Title is required" }),
@@ -32,7 +34,8 @@ const eventSchema = z.object({
   startDate: z.string({ required_error: "Start Date is required" }),
   endDate: z.string({ required_error: "End Date is required" }),
   location: z.string({ required_error: "Location is required" }),
-  imgUrl: z.any()
+  post: z.boolean().default(false),
+  imgUrl: z.any(),
 })
 
 type EventFormData = z.infer<typeof eventSchema>
@@ -59,26 +62,28 @@ const EventsPage: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
-      const { data } = await getEvents() as unknown as any
+      const { data } = (await getEvents()) as unknown as any
       if (data.length > 0) {
-        const updatedEvents = await Promise.all(data.map(async (temp: EventType) => {
-          let tempImg = null
-          try {
-             tempImg = await getDownloadURL(ref(Storage, temp.imgUrl))
-          } catch (error) {
-            tempImg = null
-          }
-          return {
-            ...temp,
-            imgUrl: tempImg
-          }
-        }))
+        const updatedEvents = await Promise.all(
+          data.map(async (temp: EventType) => {
+            let tempImg = null
+            try {
+              tempImg = await getDownloadURL(ref(Storage, temp.imgUrl))
+            } catch (error) {
+              tempImg = null
+            }
+            return {
+              ...temp,
+              imgUrl: tempImg,
+            }
+          }),
+        )
         setEvents(updatedEvents)
       } else {
         setEvents([])
       }
     } catch (err) {
-      console.error('Error fetching events:', err)
+      console.error("Error fetching events:", err)
       toast({
         title: "Error",
         description: "Failed to fetch events. Please try again.",
@@ -111,7 +116,7 @@ const EventsPage: React.FC = () => {
 
     try {
       if (image) {
-        const uploadedImageRef = await uploadImage(image, `${data.title}-${new Date()}`) as string
+        const uploadedImageRef = (await uploadImage(image, `${data.title}-${new Date()}`)) as string
         imageUrl = await getDownloadURL(ref(Storage, uploadedImageRef))
       }
 
@@ -119,7 +124,7 @@ const EventsPage: React.FC = () => {
         ...data,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
-        imgUrl: imageUrl || (selectedEvent?.imgUrl || ''),
+        imgUrl: imageUrl || selectedEvent?.imgUrl || "",
       }
 
       if (isUpdating && selectedEvent) {
@@ -133,14 +138,14 @@ const EventsPage: React.FC = () => {
 
       toast({
         title: "Success",
-        description: `Event ${isUpdating ? 'updated' : 'created'} successfully!`,
+        description: `Event ${isUpdating ? "updated" : "created"} successfully!`,
       })
       setShowModal(false)
     } catch (err) {
-      console.error(`Error ${isUpdating ? 'updating' : 'creating'} event:`, err)
+      console.error(`Error ${isUpdating ? "updating" : "creating"} event:`, err)
       toast({
         title: "Error",
-        description: `An error occurred while ${isUpdating ? 'updating' : 'creating'} the event.`,
+        description: `An error occurred while ${isUpdating ? "updating" : "creating"} the event.`,
         variant: "destructive",
       })
 
@@ -157,9 +162,10 @@ const EventsPage: React.FC = () => {
     setSelectedEvent(event)
     setValue("title", event.title)
     setValue("description", event.description)
-    setValue("startDate", format(toZonedTime(new Date(event.startDate), 'Asia/Manila'), "yyyy-MM-dd'T'HH:mm"))
-    setValue("endDate", format(toZonedTime(new Date(event.endDate), 'Asia/Manila'), "yyyy-MM-dd'T'HH:mm"))
+    setValue("startDate", format(toZonedTime(new Date(event.startDate), "Asia/Manila"), "yyyy-MM-dd'T'HH:mm"))
+    setValue("endDate", format(toZonedTime(new Date(event.endDate), "Asia/Manila"), "yyyy-MM-dd'T'HH:mm"))
     setValue("location", event.location)
+    setValue("post", event.post)
     setShowModal(true)
     setIsUpdating(false)
   }
@@ -168,9 +174,12 @@ const EventsPage: React.FC = () => {
     setSelectedEvent(event)
     setValue("title", event.title)
     setValue("description", event.description)
-    setValue("startDate", format(toZonedTime(new Date(event.startDate), 'Asia/Manila'), "yyyy-MM-dd'T'HH:mm"))
-    setValue("endDate", format(toZonedTime(new Date(event.endDate), 'Asia/Manila'), "yyyy-MM-dd'T'HH:mm"))
+    setValue("startDate", format(toZonedTime(new Date(event.startDate), "Asia/Manila"), "yyyy-MM-dd'T'HH:mm"))
+    setValue("endDate", format(toZonedTime(new Date(event.endDate), "Asia/Manila"), "yyyy-MM-dd'T'HH:mm"))
     setValue("location", event.location)
+    setValue("post", (typeof event.post ==  'string' ? 
+      event.post == 'true' ? true : false
+      : event.post) )
     setIsUpdating(true)
     setShowModal(true)
   }
@@ -185,7 +194,7 @@ const EventsPage: React.FC = () => {
       await deleteObject(ref(Storage, event.imgUrl))
       await fetchEvents()
     } catch (err) {
-      console.error('Error deleting event:', err)
+      console.error("Error deleting event:", err)
       toast({
         title: "Error",
         description: "Failed to delete event. Please try again.",
@@ -203,12 +212,37 @@ const EventsPage: React.FC = () => {
     setSelectedEvent(null)
   }
 
+  const [_hospitals, setHospitals] = useState<{ _id: string; username: string; address: string }[]>([])
+  
+   useEffect(() => {
+    fetchHospitals()
+  }, [])
+
+  const fetchHospitals = async () => {
+    try {
+      const { data } = (await getHospitals()) as unknown as any
+      if (data.length > 0) {
+        setHospitals(data)
+      } else {
+        setHospitals([])
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch hospitals. Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  
   return (
     <div className="relative min-h-full min-w-full bg-[#4A1515]">
       <div className="absolute mt-8 left-8">
         <button
           onClick={() => {
-            navigate('/admin')
+            navigate("/admin")
           }}
           className="flex items-center text-white hover:opacity-80"
         >
@@ -246,8 +280,12 @@ const EventsPage: React.FC = () => {
               {events.map((event) => (
                 <tr key={event._id} className="hover:bg-gray-700">
                   <td className="p-3">{event.title}</td>
-                  <td className="p-3">{format(toZonedTime(new Date(event.startDate), 'Asia/Manila'), 'MMM dd, yyyy HH:mm')}</td>
-                  <td className="p-3">{format(toZonedTime(new Date(event.endDate), 'Asia/Manila'), 'MMM dd, yyyy HH:mm')}</td>
+                  <td className="p-3">
+                    {format(toZonedTime(new Date(event.startDate), "Asia/Manila"), "MMM dd, yyyy HH:mm")}
+                  </td>
+                  <td className="p-3">
+                    {format(toZonedTime(new Date(event.endDate), "Asia/Manila"), "MMM dd, yyyy HH:mm")}
+                  </td>
                   <td className="p-3">{event.location}</td>
                   <td className="p-3">
                     <Button variant="ghost" size="icon" onClick={() => handleViewEvent(event)}>
@@ -256,10 +294,14 @@ const EventsPage: React.FC = () => {
                     <Button variant="ghost" size="icon" onClick={() => handleUpdateEvent(event)}>
                       <Pencil className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => {
-                      setSelectedEvent(event)
-                      setShowDeleteConfirm(true)
-                    }}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setSelectedEvent(event)
+                        setShowDeleteConfirm(true)
+                      }}
+                    >
                       <Trash className="w-4 h-4" />
                     </Button>
                   </td>
@@ -270,11 +312,17 @@ const EventsPage: React.FC = () => {
         </div>
 
         <Dialog open={showModal} onOpenChange={setShowModal}>
-          <DialogContent className="sm:max-w-[625px]">
+          <DialogContent className="sm:max-w-[625px] bg-[#F8E7E7]">
             <DialogHeader>
-              <DialogTitle>{isUpdating ? 'Update Event' : (selectedEvent && !isUpdating ? 'View Event' : 'Create New Event')}</DialogTitle>
+              <DialogTitle>
+                {isUpdating ? "Update Event" : selectedEvent && !isUpdating ? "View Event" : "Create New Event"}
+              </DialogTitle>
               <DialogDescription>
-                {isUpdating ? `Make changes to your event here. Click save when you're done.` : (selectedEvent && !isUpdating ? 'Event details' : 'Add a new event to your calendar.')}
+                {isUpdating
+                  ? `Make changes to your event here. Click save when you're done.`
+                  : selectedEvent && !isUpdating
+                    ? "Event details"
+                    : "Add a new event to your calendar."}
               </DialogDescription>
             </DialogHeader>
             <ScrollArea className="mt-8 max-h-[60vh] pr-6">
@@ -285,11 +333,7 @@ const EventsPage: React.FC = () => {
                     name="title"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        placeholder="Enter event title"
-                        disabled={!!(selectedEvent && !isUpdating)}
-                      />
+                      <Input {...field} placeholder="Enter event title" disabled={!!(selectedEvent && !isUpdating)} />
                     )}
                   />
                 </div>
@@ -316,11 +360,7 @@ const EventsPage: React.FC = () => {
                     name="startDate"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        type="datetime-local"
-                        disabled={!!(selectedEvent && !isUpdating)}
-                      />
+                      <Input {...field} type="datetime-local" disabled={!!(selectedEvent && !isUpdating)} />
                     )}
                   />
                 </div>
@@ -331,11 +371,7 @@ const EventsPage: React.FC = () => {
                     name="endDate"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        type="datetime-local"
-                        disabled={!!(selectedEvent && !isUpdating)}
-                      />
+                      <Input {...field} type="datetime-local" disabled={!!(selectedEvent && !isUpdating)} />
                     )}
                   />
                 </div>
@@ -354,23 +390,32 @@ const EventsPage: React.FC = () => {
                     )}
                   />
                 </div>
-              
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="post">Post to Website Announcements</Label>
+                  <Controller
+                    name="post"
+                    control={control}
+                    defaultValue={false}
+                    render={({ field }) => (
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={!!(selectedEvent && !isUpdating)}
+                      />
+                    )}
+                  />
+                </div>
                 {(isUpdating || !selectedEvent) && (
                   <div className="grid w-full items-center gap-1.5">
                     <Label htmlFor="image">Event Image</Label>
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
+                    <Input id="image" type="file" accept="image/*" onChange={handleImageChange} />
                   </div>
                 )}
 
                 {selectedEvent && selectedEvent.imgUrl && (
                   <div className="mt-4">
                     <img
-                      src={selectedEvent.imgUrl}
+                      src={selectedEvent.imgUrl || "/placeholder.svg"}
                       alt={selectedEvent.title}
                       className="object-cover w-full h-48 rounded-md"
                     />
@@ -381,16 +426,25 @@ const EventsPage: React.FC = () => {
               </form>
             </ScrollArea>
             <DialogFooter className="mt-6">
-              <Button type="button" variant="outline" onClick={() => {
-                resetForm()
-                setShowModal(false)
-              }}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  resetForm()
+                  setShowModal(false)
+                }}
+              >
                 Cancel
               </Button>
 
               {(isUpdating || !selectedEvent) && (
-                <Button type="submit" disabled={isLoading} onClick={handleSubmit(onSubmit)}>
-                  {isLoading ? 'Uploading...' : (isUpdating ? 'Update' : 'Create') + ' Event'}
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  onClick={handleSubmit(onSubmit)}
+                  className="bg-[#8B4F4F] hover:bg-[#724141] text-white"
+                >
+                  {isLoading ? "Uploading..." : isUpdating ? "Update" : "Save to Calendar"}
                 </Button>
               )}
             </DialogFooter>
@@ -423,3 +477,4 @@ const EventsPage: React.FC = () => {
 
 export default EventsPage
 
+  

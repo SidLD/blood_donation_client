@@ -15,6 +15,9 @@ const GuestDonor = lazy(() => import("@/pages/guest-donor"));
 const SignInSelection = lazy(() => import("@/pages/sign-in-selection"));
 const AdminSignIn = lazy(() => import("@/pages/admin/sign-in"));
 const DonorSignIn = lazy(() => import("@/pages/donor/sign-in"));
+const SuperAdminSignIn = lazy(() => import("@/pages/super_admin/sign-in"));
+
+
 const AdminDonorList = lazy(() => import("@/pages/admin/donor-list"));
 const AdminBloodSupply = lazy(() => import("@/pages/admin/blood-supply"));
 const AdminCalendar = lazy(() => import("@/pages/admin/calendar"));
@@ -102,6 +105,14 @@ const routers = createBrowserRouter(
           element={
             <Suspense fallback={<LoadingScreen />}>
               <DonorSignIn />
+            </Suspense>
+          }
+        />
+        <Route
+          path="super-admin"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <SuperAdminSignIn />
             </Suspense>
           }
         />
