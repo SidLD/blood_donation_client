@@ -13,9 +13,8 @@ const RegisterLayout: React.FC<RegisterPageProps> = () => {
       <Toaster />
       <div className="absolute inset-0 bg-white">
         <img />
-        <div className="absolute left-0 bottom-0 w-[20%] h-[15%] bg-[#8B0000] rounded-tr-full " />
-        {/* Top right shape */}
-        <div className="absolute right-0 top-0 w-[20%] h-[35%] bg-[#FF0000] rounded-bl-full" />
+        <div className="absolute left-0 bottom-0 w-[20%] h-[15%]  rounded-tr-full " />
+        <div className="absolute right-0 top-0 w-[20%] h-[35%]  rounded-bl-full" />
       </div>
       <div className="z-10 flex flex-col w-full max-w-4xl mx-4 overflow-hidden bg-transparent rounded-lg shadow-xl md:flex-row bg-opacity-90">
         <Outlet />

@@ -1,3 +1,5 @@
+import { IHospital } from "./user";
+
 export interface DonorType {
     _id: string;
     profile?: IimgType;
@@ -70,6 +72,7 @@ export interface DonorType {
     location: string;
     user?: AdminType;
     post: boolean
+    hospital: IHospital
   }
   
   export interface AdminType {

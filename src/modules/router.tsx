@@ -5,6 +5,7 @@ import RegisterLayout from "@/layouts/RegisterLayout";
 import LoadingScreen from "@/components/loader/loading-screen";
 
 const Home = lazy(() => import("@/pages/home"));
+const Event = lazy(() => import("@/pages/events"));
 const AboutUs = lazy(() => import("@/pages/about-us"));
 const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const ContributorDashboard = lazy(() => import("@/pages/donor/dashboard"));
@@ -19,7 +20,7 @@ const SuperAdminSignIn = lazy(() => import("@/pages/super_admin/sign-in"));
 
 
 const AdminDonorList = lazy(() => import("@/pages/admin/donor-list"));
-const AdminBloodSupply = lazy(() => import("@/pages/admin/blood-supply"));
+const AdminBloodSupply = lazy(() => import("@/pages/admin/transaction"));
 const AdminCalendar = lazy(() => import("@/pages/admin/calendar"));
 const EventsPage = lazy(() => import("@/pages/admin/event"));
 
@@ -37,6 +38,14 @@ const routers = createBrowserRouter(
           }
         />
         <Route
+          path="/events"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <Event />
+            </Suspense>
+          }
+        />
+          <Route
           path="/about-us"
           element={
             <Suspense fallback={<LoadingScreen />}>

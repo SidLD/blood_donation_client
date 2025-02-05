@@ -6,6 +6,21 @@ import {  TransactionForm } from "@/types/transaction";
 // Get the API URL from environment variable
 console.log(import.meta.env.VITE_API_URL);
 
+// **Super Admin Authentication API**
+export const loginSuperAdmin = (data: AdminType) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/login-super-admin`, data)
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+
 // **Admin Authentication API**
 export const loginAdmin = (data: AdminType) => {
   return new Promise((resolve, reject) => {
@@ -33,11 +48,50 @@ export const registerAdmin = (data: AdminType) => {
   });
 };
 
-// Get Admin
+// Get Hospital
 export const getHospitals = () => {
   return new Promise((resolve, reject) => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/hospitals`, dataHeader())  
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+// Create Hospital
+export const createHospital = (data: any) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${import.meta.env.VITE_API_URL}/hospitals`,  data, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const updateHospital = (id: string, data: any) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/hospitals/${id}`,  data, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+export const deleteHospital = (id:string) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .delete(`${import.meta.env.VITE_API_URL}/hospitals/${id}`, dataHeader())  
       .then((res: any) => {
         resolve(res);
       })
@@ -224,10 +278,10 @@ export const createEvent = (data: EventType) => {
   });
 };
 
-export const getEvents = () => {
+export const getEvents = (post_type:string = 'all') => {
   return new Promise((resolve, reject) => {
     axios
-      .get(`${import.meta.env.VITE_API_URL}/events`, dataHeader())
+      .get(`${import.meta.env.VITE_API_URL}/events/${post_type}`, dataHeader())
       .then((res: any) => {
         resolve(res);
       })

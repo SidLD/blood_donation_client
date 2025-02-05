@@ -23,7 +23,14 @@ export interface donorNumber{
     name: string;
   };
 };
-  
+export interface IHospital {
+  _id?: string;
+  profile?: Iimg;
+  username: string;
+  license: string;
+  address: string;
+  password?: string;
+}
 
 export interface IAdmin {
   _id?: string;

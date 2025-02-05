@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form"
 import logo from '../../../assets/logo.png'
 import { useToast } from '@/hooks/use-toast'
-import { loginAdmin } from '@/lib/api'
+import { loginSuperAdmin } from '@/lib/api'
 import { AdminType } from '@/types/interface'
 import { auth } from '@/lib/services'
 
@@ -44,7 +44,7 @@ const SuperAdminSignInView: React.FC = () => {
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {  
     try {
-      const {data} = await loginAdmin(values as AdminType) as unknown as any
+      const {data} = await loginSuperAdmin(values as AdminType) as unknown as any
       if(data.token){
         auth.storeToken(data.token)
         toast({

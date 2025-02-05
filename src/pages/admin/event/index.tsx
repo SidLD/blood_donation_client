@@ -27,6 +27,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { z } from "zod"
 import { format, toZonedTime } from "date-fns-tz"
 import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const eventSchema = z.object({
   title: z.string({ required_error: "Title is required" }),
@@ -36,6 +37,7 @@ const eventSchema = z.object({
   location: z.string({ required_error: "Location is required" }),
   post: z.boolean().default(false),
   imgUrl: z.any(),
+  hospital: z.string()
 })
 
 type EventFormData = z.infer<typeof eventSchema>
@@ -55,8 +57,27 @@ const EventsPage: React.FC = () => {
   const { control, handleSubmit, reset, setValue } = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
   })
+  const [hospitals, setHospitals] = useState<{ _id: string; username: string; address: string }[]>([])
 
+  const fetchHospitals = async () => {
+    try {
+      const { data } = (await getHospitals()) as unknown as any
+      if (data.length > 0) {
+        setHospitals(data)
+      } else {
+        setHospitals([])
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch hospitals. Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
   useEffect(() => {
+    fetchHospitals()
     fetchEvents()
   }, [])
 
@@ -120,7 +141,7 @@ const EventsPage: React.FC = () => {
         imageUrl = await getDownloadURL(ref(Storage, uploadedImageRef))
       }
 
-      const eventData: EventType = {
+      const eventData: any = {
         ...data,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
@@ -159,8 +180,12 @@ const EventsPage: React.FC = () => {
   }
 
   const handleViewEvent = (event: EventType) => {
+    reset()
     setSelectedEvent(event)
     setValue("title", event.title)
+    if(event.hospital?._id){
+      setValue("hospital", event.hospital._id as string )
+    }
     setValue("description", event.description)
     setValue("startDate", format(toZonedTime(new Date(event.startDate), "Asia/Manila"), "yyyy-MM-dd'T'HH:mm"))
     setValue("endDate", format(toZonedTime(new Date(event.endDate), "Asia/Manila"), "yyyy-MM-dd'T'HH:mm"))
@@ -171,8 +196,12 @@ const EventsPage: React.FC = () => {
   }
 
   const handleUpdateEvent = (event: EventType) => {
+    reset()
     setSelectedEvent(event)
     setValue("title", event.title)
+    if(event.hospital?._id){
+      setValue("hospital", event.hospital._id as string )
+    }
     setValue("description", event.description)
     setValue("startDate", format(toZonedTime(new Date(event.startDate), "Asia/Manila"), "yyyy-MM-dd'T'HH:mm"))
     setValue("endDate", format(toZonedTime(new Date(event.endDate), "Asia/Manila"), "yyyy-MM-dd'T'HH:mm"))
@@ -210,30 +239,6 @@ const EventsPage: React.FC = () => {
     setImage(null)
     setIsUpdating(false)
     setSelectedEvent(null)
-  }
-
-  const [_hospitals, setHospitals] = useState<{ _id: string; username: string; address: string }[]>([])
-  
-   useEffect(() => {
-    fetchHospitals()
-  }, [])
-
-  const fetchHospitals = async () => {
-    try {
-      const { data } = (await getHospitals()) as unknown as any
-      if (data.length > 0) {
-        setHospitals(data)
-      } else {
-        setHospitals([])
-      }
-    } catch (error) {
-      console.error('Error fetching hospitals:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch hospitals. Please try again.',
-        variant: 'destructive'
-      })
-    }
   }
 
   
@@ -312,7 +317,7 @@ const EventsPage: React.FC = () => {
         </div>
 
         <Dialog open={showModal} onOpenChange={setShowModal}>
-          <DialogContent className="sm:max-w-[625px] bg-[#F8E7E7]">
+          <DialogContent className="sm:max-w-[625px] ">
             <DialogHeader>
               <DialogTitle>
                 {isUpdating ? "Update Event" : selectedEvent && !isUpdating ? "View Event" : "Create New Event"}
@@ -354,6 +359,29 @@ const EventsPage: React.FC = () => {
                   />
                 </div>
 
+                <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="edit-hospital" className="text-right">
+                      Hospital
+                    </Label>
+                    <Controller
+                      name="hospital"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value} >
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select hospital" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {hospitals.map(hospital => (
+                            <SelectItem key={hospital._id} value={hospital._id}>
+                              {hospital.username} - {hospital.address}
+                            </SelectItem>
+                          ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
                 <div className="grid w-full items-center gap-1.5">
                   <Label htmlFor="startDate">Start Date and Time</Label>
                   <Controller
