@@ -167,10 +167,13 @@ export default function AdminDashboard() {
         />
          <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="mb-8 text-white bg-transparent border-white/20 hover:bg-white/10">
+              {
+                auth.getRole() == 'SUPER_ADMIN' &&
+                <Button variant="outline" className="mb-8 text-white bg-transparent border-white/20 hover:bg-white/10">
                 <Building2 className="w-4 h-4 mr-2" />
                 View Hospitals
               </Button>
+              }
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px] bg-red-950 text-white border-red-900">
               <DialogHeader>

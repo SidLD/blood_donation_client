@@ -47,7 +47,6 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { getTransactions, updateTransaction, deleteTransaction, getHospitals, getHospitalDonors, createHospitalApplication } from '@/lib/api'
 import { Transaction, TransactionForm } from '@/types/transaction'
-import { auth } from '@/lib/services'
 import { Donor } from '@/types/user'
 import { format, parse } from 'date-fns'
 
@@ -145,10 +144,8 @@ const BloodSupplyPage: React.FC = () => {
 
   const handleCreateTransaction = async (data: z.infer<typeof transactionSchema>) => {
     try {
-      console.log(data)
       const payload: TransactionForm = {
-        ...data,
-        hospital: auth.getUserInfo().id
+        ...data
       }
       if (data._id) {
         await updateTransaction(data._id, payload) as unknown as any
@@ -238,6 +235,8 @@ const BloodSupplyPage: React.FC = () => {
     }
     return username
   }
+
+
 
   return (
     <div className="min-h-full min-w-full bg-[#F8EFEF]">
@@ -340,6 +339,29 @@ const BloodSupplyPage: React.FC = () => {
                     {errors.datetime && <p className="text-sm text-red-500">{errors.datetime.message}</p>}
                   </div>
                   <div className="grid items-center grid-cols-4 gap-4">
+                    <Label htmlFor="edit-hospital" className="text-right">
+                      Hospital
+                    </Label>
+                    <Controller
+                      name="hospital"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value} >
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select hospital" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {hospitals.map(hospital => (
+                            <SelectItem key={hospital._id} value={hospital._id}>
+                              {hospital.username} - {hospital.address}
+                            </SelectItem>
+                          ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                </div>
+                  <div className="grid items-center grid-cols-4 gap-4">
                     <Label htmlFor="status" className="text-right">
                       Status
                     </Label>
@@ -402,7 +424,7 @@ const BloodSupplyPage: React.FC = () => {
           <TableBody>
             {transactions.map((transaction) => (
               <TableRow key={transaction._id}>
-                <TableCell>{transaction.hospital.username}</TableCell>
+                <TableCell>{transaction.hospital?.username ? transaction.hospital.username: ''}</TableCell>
                 <TableCell>{format(new Date(transaction.datetime), 'MMM d, yyyy hh:mm a')}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
