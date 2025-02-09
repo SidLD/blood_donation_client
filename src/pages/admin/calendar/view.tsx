@@ -9,40 +9,39 @@ import { getHospitalCalendar } from '@/lib/api'
 
 // Types
 interface Appointment {
-  id: string;
-  time: string;
-  patientName: string;
-  screeningType: string;
-  bloodUnits: number;
+  id: string
+  time: string
+  patientName: string
+  screeningType: string
+  bloodUnits: number
 }
 
 interface DayData {
-  date: number;
-  bloodUnits: number;
-  appointments: Appointment[];
+  date: number
+  bloodUnits: number
+  appointments: Appointment[]
 }
 
 interface CalendarData {
-  [date: string]: DayData;
+  [date: string]: DayData
 }
 
 interface Transaction {
-  _id: string;
+  _id: string
   user: {
-    _id: string;
-    username: string;
-  };
+    _id: string
+    username: string
+  }
   guestDonor: {
-    _id: string;
-    username: string;
-  };
-  datetime: string;
-  status: string;
-  hospital: string;
-  remarks: string;
-  type: 'GUEST-APPOINTMENT' | 'MEMBER-APPOINTMENT'
+    _id: string
+    username: string
+  }
+  datetime: string
+  status: string
+  hospital: string
+  remarks: string
+  type: "GUEST-APPOINTMENT" | "MEMBER-APPOINTMENT"
 }
-
 
 export default function HospitalCalendar(): JSX.Element {
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
@@ -64,28 +63,29 @@ export default function HospitalCalendar(): JSX.Element {
       const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')
       const year = currentDate.getFullYear().toString()
       const { data } = await getHospitalCalendar(month, year) as unknown as any
-      
+
       if(data.length) {
         const formattedData: CalendarData = data.reduce((acc: CalendarData, transaction: Transaction) => {
         const dateStr = format(new Date(transaction.datetime), 'yyyy-MM-dd')
-        if (!acc[dateStr]) {
-          acc[dateStr] = {
-            date: new Date(transaction.datetime).getDate(),
-            bloodUnits: 0,
-            appointments: []
+          if (!acc[dateStr]) {
+            acc[dateStr] = {
+              date: new Date(transaction.datetime).getDate(),
+              bloodUnits: 0,
+              appointments: [],
+            }
           }
-        }
-        acc[dateStr].bloodUnits += 1
-        acc[dateStr].appointments.push({
-          id: transaction._id,
-          time: format(new Date(transaction.datetime), 'HH:mm'),
-          patientName:  transaction.type == 'MEMBER-APPOINTMENT' ? transaction.user.username : transaction.guestDonor.username,
-          screeningType: 'Blood Donation',
-          bloodUnits: 1
-        })
-        return acc
-      }, {})
-      setCalendarData(formattedData)
+          acc[dateStr].bloodUnits += 1
+          acc[dateStr].appointments.push({
+            id: transaction._id,
+            time: format(new Date(transaction.datetime), "HH:mm"),
+            patientName:
+              transaction.type == "MEMBER-APPOINTMENT" ? transaction.user.username : transaction.guestDonor.username,
+            screeningType: "Blood Donation",
+            bloodUnits: 1,
+          })
+          return acc
+        }, {})
+        setCalendarData(formattedData)
       }
     } catch (error) {
       console.error('Error fetching hospital calendar:', error)
@@ -117,45 +117,37 @@ export default function HospitalCalendar(): JSX.Element {
   const renderCalendarView = (): JSX.Element => (
     <div className="p-6 w-full h-full bg-[#F8EFEF] rounded-lg relative">
       <div className="flex items-center justify-between mb-8">
-        <div className="text-6xl font-bold text-[#4A1515]">
-          {format(currentDate, 'dd')}
+        <div className="flex flex-col items-start">
+          <div className="text-8xl font-bold text-[#4A1515]">{format(currentDate, "dd")}</div>
+          <button
+            onClick={() => (window.location.href = "/admin/events")}
+            className="mt-2 px-4 py-2 bg-pink-300 text-[#4A1515] rounded-lg hover:bg-pink-400 transition-colors"
+          >
+            Manage Events
+          </button>
         </div>
         <div className="flex-1 text-center">
-          <h1 className="text-2xl font-bold text-[#4A1515] mb-4">
-            HOSPITAL CALENDAR
-          </h1>
+          <h1 className="text-2xl font-bold text-[#4A1515] mb-4">HOSPITAL CALENDAR</h1>
           <div className="flex items-center justify-center gap-4">
-            <span className="text-4xl font-bold text-[#4A1515]">
-              {format(currentDate, 'MMMM')}
-            </span>
+            <span className="text-4xl font-bold text-[#4A1515]">{format(currentDate, "MMMM")}</span>
             <div className="flex gap-2">
-              <button
-                onClick={handlePrevMonth}
-                className="p-2 rounded-full hover:bg-gray-200"
-              >
+              <button onClick={handlePrevMonth} className="p-2 rounded-full hover:bg-gray-200">
                 <ChevronLeft className="w-6 h-6" />
               </button>
-              <button
-                onClick={handleNextMonth}
-                className="p-2 rounded-full hover:bg-gray-200"
-              >
+              <button onClick={handleNextMonth} className="p-2 rounded-full hover:bg-gray-200">
                 <ChevronRight className="w-6 h-6" />
               </button>
             </div>
           </div>
         </div>
-        <div className="text-4xl font-bold text-red-600">
-          {format(currentDate, 'yyyy')}
-        </div>
+        <div className="text-4xl font-bold text-red-600">{format(currentDate, "yyyy")}</div>
       </div>
 
       <div className="grid grid-cols-7 gap-4">
         {weekDays.map((day, index) => (
           <div
             key={index}
-            className={`text-center font-bold ${
-              index === 0 || index === 6 ? 'text-red-600' : 'text-[#4A1515]'
-            }`}
+            className={`text-center font-bold ${index === 0 || index === 6 ? "text-red-600" : "text-[#4A1515]"}`}
           >
             {day}
           </div>
@@ -165,10 +157,7 @@ export default function HospitalCalendar(): JSX.Element {
         ))}
         {Array.from({ length: daysInMonth }).map((_, index) => {
           const day = index + 1
-          const dateStr = format(
-            new Date(currentDate.getFullYear(), currentDate.getMonth(), day),
-            'yyyy-MM-dd'
-          )
+          const dateStr = format(new Date(currentDate.getFullYear(), currentDate.getMonth(), day), "yyyy-MM-dd")
           const dayData = calendarData[dateStr]
 
           return (
@@ -179,10 +168,9 @@ export default function HospitalCalendar(): JSX.Element {
             >
               <span
                 className={`text-xl ${
-                  (firstDayOfMonth + index) % 7 === 0 ||
-                  (firstDayOfMonth + index) % 7 === 6
-                    ? 'text-red-600'
-                    : 'text-[#4A1515]'
+                  (firstDayOfMonth + index) % 7 === 0 || (firstDayOfMonth + index) % 7 === 6
+                    ? "text-red-600"
+                    : "text-[#4A1515]"
                 }`}
               >
                 {day}
@@ -190,9 +178,7 @@ export default function HospitalCalendar(): JSX.Element {
               {dayData?.bloodUnits > 0 && (
                 <div className="absolute top-0 right-0 flex items-center">
                   <Droplet className="w-3 h-3 text-red-600" />
-                  <span className="text-xs text-red-600">
-                    {dayData.bloodUnits}
-                  </span>
+                  <span className="text-xs text-red-600">{dayData.bloodUnits}</span>
                 </div>
               )}
               {dayData?.appointments.length > 0 && (
@@ -218,70 +204,57 @@ export default function HospitalCalendar(): JSX.Element {
 
     const dayData = calendarData[selectedDate]
     const date = parseISO(selectedDate)
-    const timeSlots: string[] = Array.from({ length: 48 }, (_, i) => 
-        i%2 == 1 ? `${i.toString().padStart(2, '0')}:00` : `${i.toString().padStart(2, '0')}:30`
+    const timeSlots: string[] = Array.from({ length: 48 }, (_, i) =>
+      i % 2 == 1 ? `${i.toString().padStart(2, "0")}:00` : `${i.toString().padStart(2, "0")}:30`,
     )
 
     return (
       <div className="p-6 bg-[#F8EFEF] rounded-lg h-full flex flex-col ">
         <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => setSelectedDate(null)}
-            className="p-2 rounded-full hover:bg-gray-200"
-          >
+          <button onClick={() => setSelectedDate(null)} className="p-2 rounded-full hover:bg-gray-200">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-[#4A1515] text-white flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold">
-                {format(date, 'd')}
-              </span>
-              <span className="text-sm">{format(date, 'EEE')}</span>
+          <div className="flex flex-col gap-2">
+            <div className="w-24 h-24 rounded-full bg-[#4A1515] text-white flex flex-col items-center justify-center">
+              <span className="text-4xl font-bold">{format(date, "d")}</span>
+              <span className="text-sm">{format(date, "EEE")}</span>
             </div>
-            <h2 className="text-2xl font-bold text-[#4A1515]">
-              SCHEDULED SCREENINGS
-            </h2>
+            <h2 className="text-2xl font-bold text-[#4A1515]">SCHEDULED SCREENINGS</h2>
+            <button
+              onClick={() => (window.location.href = "/manage-events")}
+              className="px-4 py-2 bg-pink-300 text-[#4A1515] rounded-lg hover:bg-pink-400 transition-colors w-fit"
+            >
+              Manage Events
+            </button>
           </div>
         </div>
 
         <div className="relative flex-grow overflow-y-auto ">
           <div className="absolute left-0 text-sm text-gray-500">Manila Time</div>
           <div className="mt-8 space-y-6">
-            {isLoading ? (
-              Array.from({ length: 4 }).map((_, index) => (
-                <Skeleton
-                  key={index}
-                  className="w-full h-12 bg-gray-200"
-                />
-              ))
-            ) : (
-              timeSlots.map((time) => {
-                const [hours, minutes] = time.split(':').map(Number)
-                const slotDate = toZonedTime(setMinutes(setHours(date, hours), minutes), 'Asia/Manila')
-                const formattedTime = format(slotDate, 'h:mm a')
-                const appointment = dayData?.appointments.find(
-                  (a) => a.time === time
-                )
-                return (
-                  <div key={time} className="relative">
-                    <div className="absolute w-24 text-right text-gray-600 -left-24">
-                      {formattedTime}
+            {isLoading
+              ? Array.from({ length: 4 }).map((_, index) => (
+                  <Skeleton key={index} className="w-full h-12 bg-gray-200" />
+                ))
+              : timeSlots.map((time) => {
+                  const [hours, minutes] = time.split(":").map(Number)
+                  const slotDate = toZonedTime(setMinutes(setHours(date, hours), minutes), "Asia/Manila")
+                  const formattedTime = format(slotDate, "h:mm a")
+                  const appointment = dayData?.appointments.find((a) => a.time === time)
+                  return (
+                    <div key={time} className="relative">
+                      <div className="absolute w-24 text-right text-gray-600 -left-24">{formattedTime}</div>
+                      <div className={`h-12 border-t-2 ${appointment ? "border-red-600" : "border-gray-300"}`}>
+                        {appointment && (
+                          <div className="mt-2 text-sm text-gray-600">
+                            <span className="font-semibold">{formattedTime}</span> - {appointment.patientName} -{" "}
+                            {appointment.screeningType}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div
-                      className={`h-12 border-t-2 ${
-                        appointment ? 'border-red-600' : 'border-gray-300'
-                      }`}
-                    >
-                      {appointment && (
-                        <div className="mt-2 text-sm text-gray-600">
-                          <span className="font-semibold">{formattedTime}</span> - {appointment.patientName} - {appointment.screeningType}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )
-              })
-            )}
+                  )
+                })}
           </div>
         </div>
       </div>

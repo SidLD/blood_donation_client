@@ -22,7 +22,7 @@ export const loginSuperAdmin = (data: AdminType) => {
 
 
 // **Admin Authentication API**
-export const loginAdmin = (data: AdminType) => {
+export const loginAdmin = (data: any) => {
   return new Promise((resolve, reject) => {
     axios
       .post(`${import.meta.env.VITE_API_URL}/login-admin`, data)
@@ -62,6 +62,19 @@ export const getHospitals = () => {
   });
 };
 
+export const getHospitalDetail = (id:string) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/hospitals/${id}`, dataHeader())  
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
 // Create Hospital
 export const createHospital = (data: any) => {
   return new Promise((resolve, reject) => {
@@ -88,6 +101,21 @@ export const updateHospital = (id: string, data: any) => {
       });
   });
 };
+
+export const updateHospitalPassowrd = (id: string, data: any) => {
+  return new Promise((resolve, reject) => {
+    axios
+      .put(`${import.meta.env.VITE_API_URL}/hospitals/password/${id}`,  data, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+
 export const deleteHospital = (id:string) => {
   return new Promise((resolve, reject) => {
     axios

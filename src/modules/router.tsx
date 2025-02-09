@@ -3,6 +3,7 @@ import { lazy, Suspense } from "react";
 import { PrivateLayout, PublicLayout } from "./module";
 import RegisterLayout from "@/layouts/RegisterLayout";
 import LoadingScreen from "@/components/loader/loading-screen";
+import { auth } from "@/lib/services";
 
 const Home = lazy(() => import("@/pages/home"));
 const Event = lazy(() => import("@/pages/events"));
@@ -11,6 +12,8 @@ const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const ContributorDashboard = lazy(() => import("@/pages/donor/dashboard"));
 const SignUpSelection = lazy(() => import("@/pages/sign-up-selection"));
 const AdminSignUp = lazy(() => import("@/pages/admin/sign-up"));
+
+const AdminSetting = lazy(() => import("@/pages/admin/setting"));
 const DonorSignUp = lazy(() => import("@/pages/donor/sign-up"));
 const GuestDonor = lazy(() => import("@/pages/guest-donor"));
 const SignInSelection = lazy(() => import("@/pages/sign-in-selection"));
@@ -169,10 +172,20 @@ const routers = createBrowserRouter(
             </Suspense>
           }
         />
+       <Route
+          path="setting"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AdminSetting />
+            </Suspense>
+          }
+        />
       </Route>
 
       {/* Donor Routes */}
-      <Route path="/donor" element={<PrivateLayout />}>
+      {
+        auth.getRole() == 'DONOR' && 
+        <Route path="/donor" element={<PrivateLayout />}>
         <Route
           index
           element={
@@ -182,6 +195,7 @@ const routers = createBrowserRouter(
           }
         />
       </Route>
+      }
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

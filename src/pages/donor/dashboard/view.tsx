@@ -1,4 +1,4 @@
-'use client'
+
 
 import { useState } from 'react'
 import { LogOut, Calendar, ClipboardList, Settings } from 'lucide-react'
@@ -12,6 +12,7 @@ import UserSettings from './_components/user-setting'
 export default function DonorDashboard() {
   const [activeTab, setActiveTab] = useState<'appointment' | 'logs' | 'settings'>('appointment')
   const { toast } = useToast()
+
 
   const handleLogout = () => {
     try {

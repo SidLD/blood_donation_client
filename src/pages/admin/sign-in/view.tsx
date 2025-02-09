@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
-import { User } from 'lucide-react'
+import React, { useState } from 'react'
+import { Hospital, User } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -17,8 +17,8 @@ import {
 import logo from '../../../assets/logo.png'
 import { useToast } from '@/hooks/use-toast'
 import { loginAdmin } from '@/lib/api'
-import { AdminType } from '@/types/interface'
 import { auth } from '@/lib/services'
+import { Switch } from '@/components/ui/switch'
 
 const loginSchema = z.object({
   username: z.string().min(2, {
@@ -29,7 +29,7 @@ const loginSchema = z.object({
   }),
   password: z.string().min(5, {
     message: "Password must be at least 5 characters.",
-  })
+  }),
 })
 
 const AdminSignInView: React.FC = () => {
@@ -41,10 +41,12 @@ const AdminSignInView: React.FC = () => {
       license: "",
     },
   })
+  const [isHospital, setIsHospital] = useState(false)
+
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {  
     try {
-      const {data} = await loginAdmin(values as AdminType) as unknown as any
+      const {data} = await loginAdmin({...values, loginType: isHospital} as any) as unknown as any
       if(data.token){
         auth.storeToken(data.token)
         toast({
@@ -63,24 +65,27 @@ const AdminSignInView: React.FC = () => {
       })
     }
   }
-
   return (
     <div className="relative grid w-full h-full rounded-lg lg:grid-cols-2">
       <div className="bg-[#3D0000] p-8 lg:p-12 flex flex-col min-h-[600px]">
         <div className="absolute flex items-center left-2 top-1 text-white/90">
-          <img width={60} src={logo} alt="logo" className="brightness-200" />
+          <img width={60} src={logo || "/placeholder.svg"} alt="logo" className="brightness-200" />
         </div>
-        
+
         <div className="flex flex-col items-center justify-center flex-1 text-center">
           <h1 className="mb-8 text-3xl font-bold text-white">
-            <span className="px-4 py-2 border-2 border-purple-500 rounded-lg bg-purple-500/10">
-              Welcome Back!
-            </span>
+            <span className="px-4 py-2 border-2 border-purple-500 rounded-lg bg-purple-500/10">Welcome Back!</span>
           </h1>
-          
+
           <div className="flex items-center justify-center gap-2 px-6 py-3 mb-8 bg-white rounded-full">
-            <User className="w-6 h-6 text-[#3D0000]" />
-            <span className="text-xl font-bold text-[#3D0000]">ADMIN</span>
+            {isHospital ? <Hospital className="w-6 h-6 text-[#3D0000]" /> : <User className="w-6 h-6 text-[#3D0000]" />}
+            <span className="text-xl font-bold text-[#3D0000]">{isHospital ? "HOSPITAL" : "ADMIN"}</span>
+          </div>
+
+          <div className="flex items-center mb-6 space-x-2">
+            <span className="text-white">Admin</span>
+            <Switch checked={isHospital} onCheckedChange={setIsHospital} />
+            <span className="text-white">Hospital</span>
           </div>
 
           <Form {...form}>
@@ -91,8 +96,8 @@ const AdminSignInView: React.FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input 
-                        placeholder="Hospital"
+                      <Input
+                        placeholder={isHospital ? "Hospital Name" : "Username"}
                         className="h-14 bg-white border-none rounded-full text-[#3D0000] placeholder:text-[#3D0000]/70 px-6"
                         {...field}
                       />
@@ -107,7 +112,7 @@ const AdminSignInView: React.FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input 
+                      <Input
                         placeholder="License ID"
                         className="h-14 bg-white border-none rounded-full text-[#3D0000] placeholder:text-[#3D0000]/70 px-6"
                         {...field}
@@ -123,8 +128,8 @@ const AdminSignInView: React.FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input 
-                        type='password'
+                      <Input
+                        type="password"
                         placeholder="Password"
                         className="h-14 bg-white border-none rounded-full text-[#3D0000] placeholder:text-[#3D0000]/70 px-6"
                         {...field}
@@ -134,33 +139,29 @@ const AdminSignInView: React.FC = () => {
                   </FormItem>
                 )}
               />
-              <Button 
+              <Button
                 type="submit"
                 className="w-full h-14 text-xl font-bold text-[#3D0000] bg-white hover:bg-white/90 rounded-full mt-8"
                 disabled={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? 'Signing In...' : 'Sign In'}
+                {form.formState.isSubmitting ? "Signing In..." : "Sign In"}
               </Button>
             </form>
           </Form>
         </div>
       </div>
-      
+
       {/* Right side panel - can be removed or modified based on your needs */}
       <div className=" lg:flex bg-[#F5F5F5] p-12 flex-col items-center justify-center text-center">
-        <h2 className="mb-2 text-2xl font-bold text-[#3D0000]">
-          New Here?
-        </h2>
-        <p className="mb-6 text-[#3D0000]/70">
-          Sign up and discover great opportunities
-        </p>
-        <Button 
+        <h2 className="mb-2 text-2xl font-bold text-[#3D0000]">New Here?</h2>
+        <p className="mb-6 text-[#3D0000]/70">Sign up and discover great opportunities</p>
+        <Button
           variant="outline"
           className="border-[#3D0000] text-[#3D0000] hover:bg-[#3D0000] rounded-full hover:text-white"
           onClick={() => {
             window.location.href = `/register/admin`
-            }}
-          >
+          }}
+        >
           Register
         </Button>
       </div>
