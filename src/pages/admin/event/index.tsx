@@ -28,6 +28,7 @@ import { z } from "zod"
 import { format, toZonedTime } from "date-fns-tz"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { auth } from "@/lib/services"
 
 const eventSchema = z.object({
   title: z.string({ required_error: "Title is required" }),
@@ -79,6 +80,13 @@ const EventsPage: React.FC = () => {
   useEffect(() => {
     fetchHospitals()
     fetchEvents()
+    if(auth.getRole() == 'HOSPITAL'){
+      setValue('hospital', auth.getUserInfo().id);
+    }
+    if(auth.getRole() == 'ADMIN'){
+      setValue('hospital', auth.getUserInfo().hospital);
+    }
+    console.log(auth.getUserInfo())
   }, [])
 
   const fetchEvents = async () => {
@@ -146,6 +154,12 @@ const EventsPage: React.FC = () => {
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
         imgUrl: imageUrl || selectedEvent?.imgUrl || "",
+      }
+      if(auth.getRole() == 'HOSPITAL'){
+        eventData.hospital = auth.getUserInfo().id
+      }
+      if(auth.getRole() == 'ADMIN'){
+        eventData.hospital = auth.getUserInfo().hospital
       }
 
       if (isUpdating && selectedEvent) {
@@ -372,7 +386,14 @@ const EventsPage: React.FC = () => {
                             <SelectValue placeholder="Select hospital" />
                           </SelectTrigger>
                           <SelectContent>
-                            {hospitals.map(hospital => (
+                            {hospitals.filter((temp)=> {
+                              if(auth.getRole() == 'HOSPITAL'){
+                                return temp._id == auth.getUserInfo().id
+                              }
+                              if(auth.getRole() == 'ADMIN'){
+                                return temp._id == auth.getUserInfo().hospital
+                              }
+                            }).map(hospital => (
                             <SelectItem key={hospital._id} value={hospital._id}>
                               {hospital.username} - {hospital.address}
                             </SelectItem>

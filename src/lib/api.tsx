@@ -129,6 +129,31 @@ export const deleteHospital = (id:string) => {
   });
 };
 
+export const getHospitalAdmin = () => {
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/hospital/admins`, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
+export const updateHospitalAdminStatus = (id: string, data: any) => {
+  return new Promise((resolve, reject) => {
+    axios.put(`${import.meta.env.VITE_API_URL}/hospital/admins/status/${id}`,  data, dataHeader())
+      .then((res: any) => {
+        resolve(res);
+      })
+      .catch((err: any) => {
+        reject(err);
+      });
+  });
+};
+
 // **Donor Authentication API**
 export const loginDonor = (data: DonorLoginType) => {
   return new Promise((resolve, reject) => {

@@ -204,8 +204,11 @@ export default function HospitalCalendar(): JSX.Element {
 
     const dayData = calendarData[selectedDate]
     const date = parseISO(selectedDate)
-    const timeSlots: string[] = Array.from({ length: 48 }, (_, i) =>
-      i % 2 == 1 ? `${i.toString().padStart(2, "0")}:00` : `${i.toString().padStart(2, "0")}:30`,
+    const timeSlots: string[] = [] 
+    Array.from({ length: 24 }, (_, i) =>{
+      timeSlots.push(`${i.toString().padStart(2, "0")}:00`)
+      timeSlots.push(`${i.toString().padStart(2, "0")}:30`)
+    }
     )
 
     return (

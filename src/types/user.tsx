@@ -37,6 +37,8 @@ export interface IAdmin {
   profile?: Iimg;
   username: string;
   license: string;
+  status: 'PENDING' | 'APPROVED' |  'REJECT';
+  hospital: IHospital;
   address: string;
   password?: string;
 }

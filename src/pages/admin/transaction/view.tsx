@@ -49,6 +49,7 @@ import { getTransactions, updateTransaction, deleteTransaction, getHospitals, ge
 import { Transaction, TransactionForm } from '@/types/transaction'
 import { Donor } from '@/types/user'
 import { format, parse } from 'date-fns'
+import { auth } from '@/lib/services'
 
 const transactionSchema = z.object({
   _id: z.string().optional(),
@@ -68,7 +69,7 @@ const BloodSupplyPage: React.FC = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const { toast } = useToast()
   
-  const { control, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof transactionSchema>>({
+  const { control, handleSubmit, reset, formState: { errors }, setValue } = useForm<z.infer<typeof transactionSchema>>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       hospital: '',
@@ -83,6 +84,13 @@ const BloodSupplyPage: React.FC = () => {
     fetchHospitals()
     fetchHospitalDonors()
     fetchTransactions()
+    if(auth.getRole() == 'HOSPITAL'){
+      setValue('hospital', auth.getUserInfo().id);
+    }
+    if(auth.getRole() == 'ADMIN'){
+      setValue('hospital', auth.getUserInfo().hospital);
+    }
+    console.log(auth.getUserInfo())
   }, [])
 
   const fetchHospitals = async () => {
@@ -147,6 +155,12 @@ const BloodSupplyPage: React.FC = () => {
       const payload: TransactionForm = {
         ...data
       }
+      if(auth.getRole() == 'HOSPITAL'){
+        payload.hospital = auth.getUserInfo().id
+      }
+      if(auth.getRole() == 'ADMIN'){
+        payload.hospital = auth.getUserInfo().hospital
+      }
       if (data._id) {
         await updateTransaction(data._id, payload) as unknown as any
       } else {
@@ -182,7 +196,7 @@ const BloodSupplyPage: React.FC = () => {
       _id: data._id,
       datetime: new Date(data.datetime),
       user: userId as unknown as string,
-      hospital: data.hospital._id as string,
+      hospital:  data.hospital?._id ? data.hospital._id as string : '',
       remarks: data.remarks,
       status: data.status,
     })
@@ -351,7 +365,14 @@ const BloodSupplyPage: React.FC = () => {
                             <SelectValue placeholder="Select hospital" />
                           </SelectTrigger>
                           <SelectContent>
-                            {hospitals.map(hospital => (
+                            {hospitals.filter((temp)=> {
+                              if(auth.getRole() == 'HOSPITAL'){
+                                return temp._id == auth.getUserInfo().id
+                              }
+                              if(auth.getRole() == 'ADMIN'){
+                                return temp._id == auth.getUserInfo().hospital
+                              }
+                            }).map(hospital => (
                             <SelectItem key={hospital._id} value={hospital._id}>
                               {hospital.username} - {hospital.address}
                             </SelectItem>

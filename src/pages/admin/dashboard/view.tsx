@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { Eye, EyeOff } from "lucide-react"
 import * as z from "zod"
 
 interface Hospital {
@@ -46,6 +47,7 @@ export default function AdminDashboard() {
   const [hospitals, setHospitals] = useState<Hospital[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [editingHospital, setEditingHospital] = useState<Hospital | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -233,9 +235,24 @@ export default function AdminDashboard() {
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-bold">
                     {editingHospital ? "Edit Hospital" : "Hospitals"}
+
                   </DialogTitle>
                 </DialogHeader>
                 <div className="mt-4">
+                 <Button onClick={() => {
+                      form.reset({
+                        _id: '',
+                        address: '',
+                        contact: '',
+                        license: '',
+                        password: '',
+                        username: ''
+                      })
+                      setEditingHospital(null)
+                    }} 
+                    className="mb-2 text-black bg-white w-fit hover:bg-red-600 h-fit">
+                      Clear
+                    </Button>
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                       <FormField
@@ -262,13 +279,23 @@ export default function AdminDashboard() {
                             <FormItem>
                               <FormLabel>Password</FormLabel>
                               <FormControl>
+                              <div className="relative">
                                 <Input
-                                  type="password"
+                                  type={showPassword ? "text" : "password"}
                                   {...field}
-                                  className="text-white placeholder-red-300 border-red-800 bg-red-900/50"
+                                  className="pr-10 text-white placeholder-red-300 border-red-800 bg-red-900/50"
                                 />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-red-300 hover:text-white"
+                                >
+                                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                              </div>
                               </FormControl>
                               <FormMessage />
+                              <p className="mt-1 text-xs text-red-300">Note: You cannot update the password after creation.</p>
                             </FormItem>
                           )}
                         />

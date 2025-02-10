@@ -12,6 +12,7 @@ const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const ContributorDashboard = lazy(() => import("@/pages/donor/dashboard"));
 const SignUpSelection = lazy(() => import("@/pages/sign-up-selection"));
 const AdminSignUp = lazy(() => import("@/pages/admin/sign-up"));
+const DoctorList = lazy(() => import("@/pages/admin/doctor"));
 
 const AdminSetting = lazy(() => import("@/pages/admin/setting"));
 const DonorSignUp = lazy(() => import("@/pages/donor/sign-up"));
@@ -177,6 +178,14 @@ const routers = createBrowserRouter(
           element={
             <Suspense fallback={<LoadingScreen />}>
               <AdminSetting />
+            </Suspense>
+          }
+        />
+        <Route
+          path="account"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <DoctorList />
             </Suspense>
           }
         />
