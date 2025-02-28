@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
 import React, { useState } from 'react'
-import { Hospital, User } from 'lucide-react'
+import { Eye, EyeOff, Hospital, User } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -42,7 +42,7 @@ const AdminSignInView: React.FC = () => {
     },
   })
   const [isHospital, setIsHospital] = useState(false)
-
+  const [showPassword, setShowPassword] = useState(false)
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {  
     try {
@@ -65,6 +65,11 @@ const AdminSignInView: React.FC = () => {
       })
     }
   }
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
   return (
     <div className="relative grid w-full h-full rounded-lg lg:grid-cols-2">
       <div className="bg-[#3D0000] p-8 lg:p-12 flex flex-col min-h-[600px]">
@@ -128,12 +133,22 @@ const AdminSignInView: React.FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Password"
-                        className="h-14 bg-white border-none rounded-full text-[#3D0000] placeholder:text-[#3D0000]/70 px-6"
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Password"
+                          className="h-14 bg-white border-none rounded-full text-[#3D0000] placeholder:text-[#3D0000]/70 px-6 pr-12"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#3D0000]/70 hover:text-[#3D0000]"
+                          onClick={togglePasswordVisibility}
+                          tabIndex={-1}
+                        >
+                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
