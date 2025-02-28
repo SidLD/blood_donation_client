@@ -67,7 +67,7 @@ export function VerifyDonorIdTab({ onOpenModal }: VerifyDonorIdTabProps) {
       >
         Input Donor ID
       </Button>
-      <div className="mt-4 bg-[#E5A4A4]/60 backdrop-blur-md rounded-xl p-6">
+      <div className="mt-4 bg-[#E5A4A4]/60 backdrop-blur-md rounded-xl p-6 overflow-x-scroll">
         <h3 className="mb-4 text-xl font-semibold text-white">Verified Donor IDs</h3>
         {isLoading ? (
           <p className="text-white/90">Loading donor IDs...</p>

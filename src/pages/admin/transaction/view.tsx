@@ -265,12 +265,12 @@ const BloodSupplyPage: React.FC = () => {
       </div>
       <div className="p-8 mx-auto max-w-7xl">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-[#4A1515]">
+          <h1 className="text-lg md:text-3xl font-bold text-[#4A1515]">
             Transactions
           </h1>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" onClick={openCreateDialog}>
+              <Button className='text-md md:text-lg' variant="outline" onClick={openCreateDialog}>
                 <Plus className="w-4 h-4 mr-2" /> Create Transaction
               </Button>
             </DialogTrigger>
@@ -306,7 +306,7 @@ const BloodSupplyPage: React.FC = () => {
                       )}
                     />
                     {errors.user && <p className="text-sm text-red-500">{errors.user.message}</p>}
-                    <Label htmlFor="datetime" className="text-right">
+                    <Label htmlFor="datetime" className="text-right min-w-10">
                       Date & Time
                     </Label>
                     <Controller
@@ -446,7 +446,7 @@ const BloodSupplyPage: React.FC = () => {
             {transactions.map((transaction) => (
               <TableRow key={transaction._id}>
                 <TableCell>{transaction.hospital?.username ? transaction.hospital.username: ''}</TableCell>
-                <TableCell>{format(new Date(transaction.datetime), 'MMM d, yyyy hh:mm a')}</TableCell>
+                <TableCell className='min-w-24'>{format(new Date(transaction.datetime), 'MMM d, yyyy hh:mm a')}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                     transaction.status === 'PENDING' ? 'bg-yellow-200 text-yellow-800' :
@@ -457,7 +457,7 @@ const BloodSupplyPage: React.FC = () => {
                   </span>
                 </TableCell>
                 <TableCell>{transaction.remarks}</TableCell>
-                <TableCell>{getDonorName(transaction)}</TableCell>
+                <TableCell className='min-w-24'>{getDonorName(transaction)}</TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm" onClick={() => handleUpdateDonor(transaction)}>
                     <Edit className="w-4 h-4" />
@@ -547,7 +547,7 @@ const BloodSupplyPage: React.FC = () => {
                     />
                     {errors.user && <p className="text-sm text-red-500">{errors.user.message}</p>}
                   </div>
-                  <div className="grid items-center grid-cols-4 gap-4">
+                  <div className="grid items-center grid-cols-4 gap-4 ">
                     <Label htmlFor="edit-datetime" className="text-right">
                       Date & Time
                     </Label>
@@ -555,7 +555,7 @@ const BloodSupplyPage: React.FC = () => {
                       name="datetime"
                       control={control}
                       render={({ field }) => (
-                        <div className="flex col-span-3 gap-2">
+                        <div className="flex col-span-3 gap-2 ">
                           <Input
                             type="date"
                             value={format(field.value, 'yyyy-MM-dd')}

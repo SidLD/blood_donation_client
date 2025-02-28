@@ -19,21 +19,21 @@ const SignInSelectionView: React.FC = () => {
                 LOGIN AS 
                 </h1>
         
-                <div className="flex flex-col items-center justify-center grid-cols-1 gap-8 ">
+                <div className="flex flex-col items-center justify-center w-full gap-8">
                 <a 
                     href="/login/admin"
-                    className="flex items-center w-[50%] gap-3 px-6 py-4 transition-colors bg-white rounded-lg hover:bg-white/90 group"
+                    className="flex items-center w-[75%] lg:w-[50%] gap-3 px-6 py-4 transition-colors bg-white rounded-lg hover:bg-white/90 group"
                 >
                     <User className="w-6 h-6 text-[#3D0000]" />
-                    <span className="text-[#3D0000] text-xl font-bold">ADMIN</span>
+                    <span className="text-[#3D0000] text-xl font-bold px-6">ADMIN</span>
                 </a>
         
                 <a 
                     href="/login/donor"
-                    className="flex items-center w-[50%] gap-3 px-6 py-4 transition-colors bg-white rounded-lg hover:bg-white/90 group"
+                    className="flex items-center w-[75%] md:w-[50%] gap-3 px-6 py-4 transition-colors bg-white rounded-lg hover:bg-white/90 group"
                 >
                     <User className="w-6 h-6 text-[#3D0000]" />
-                    <span className="text-[#3D0000] text-xl font-bold">DONOR</span>
+                    <span className="text-[#3D0000] text-xl font-bold px-6">DONOR</span>
                 </a>
                 </div>
             </div>

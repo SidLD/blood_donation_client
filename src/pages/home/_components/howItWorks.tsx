@@ -20,7 +20,7 @@ export const HowItWorks = () => {
         },
       ]
   return (
-  <section id="HowItWork" className="min-h-screen px-24 py-16" 
+  <section id="HowItWork" className="min-h-screen py-16 md:px-24" 
     style={{
       backgroundImage: `url(${background})`,
       backgroundSize: "cover",

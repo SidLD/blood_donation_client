@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import React, { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -41,27 +41,53 @@ const GuestDonorView: React.FC = () => {
     handleSubmit,
     setValue,
     formState: { errors },
-    getValues
+    getValues,
   } = useForm<DonorFormData>({
     resolver: zodResolver(donorSchema),
   })
 
-  const [selectedDate, setSelectedDate] = useState<string>('')
-  const [selectedTime, setSelectedTime] = useState<string>('')
-  const [, setSelectedHospital] = useState<string>('')
+  const [selectedDate, setSelectedDate] = useState<string>("")
+  const [selectedTime, setSelectedTime] = useState<string>("")
+  const [, setSelectedHospital] = useState<string>("")
+  const [selectedMonth, setSelectedMonth] = useState<string>("")
 
   const currentDate = new Date()
-  const currentMonth = currentDate.toLocaleString('default', { month: 'long' })
+  const currentMonth = currentDate.toLocaleString("default", { month: "long" })
   const currentYear = currentDate.getFullYear()
   const [hospitals, setHospitals] = useState<{ _id: string; username: string; address: string }[]>([])
 
+  const times = ["8:00 AM", "8:30 AM", "9:30 AM", "1:00 PM"]
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ]
 
-  const dates = ['4', '5', '8', '10', '23', '27', '28', '30', '31']
-  const times = ['8:00 AM', '8:45 AM', '9:20 AM', '1:00 PM']
+  const getDaysInMonth = (month: string, year: number) => {
+    const monthIndex = months.indexOf(month)
+    if (monthIndex === -1) return []
+
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+    return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString())
+  }
+
+  const availableDates = selectedMonth
+    ? getDaysInMonth(selectedMonth, currentYear)
+    : getDaysInMonth(currentMonth, currentYear)
 
   useEffect(() => {
     fetchHospitals()
-  }, [])
+    setSelectedMonth(currentMonth)
+  }, [currentMonth])
 
   const fetchHospitals = async () => {
     try {
@@ -81,11 +107,10 @@ const GuestDonorView: React.FC = () => {
     }
   }
 
-
   const onSubmit = async () => {
     try {
-      const {data} = await createGuestDonor(getValues()) as unknown as any
-      if(data){
+      const { data } = (await createGuestDonor(getValues())) as unknown as any
+      if (data) {
         toast({
           title: "Form submitted successfully",
           description: "We've received your donor application.",
@@ -102,22 +127,31 @@ const GuestDonorView: React.FC = () => {
   }
 
   const handleNext = () => {
-    setStep(prev => (prev + 1) as 1 | 2 | 3)
+    setStep((prev) => (prev + 1) as 1 | 2 | 3)
   }
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date)
-    setValue('date', `${currentMonth} ${date}, ${currentYear}`)
+    setValue("date", `${selectedMonth || currentMonth} ${date}, ${currentYear}`)
   }
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time)
-    setValue('time', time)
+    setValue("time", time)
   }
 
   const handleHospitalSelect = (hospital: string) => {
     setSelectedHospital(hospital)
-    setValue('hospital', hospital)
+    setValue("hospital", hospital)
+  }
+
+  const handleMonthSelect = (month: string) => {
+    setSelectedMonth(month)
+    // Clear selected date when month changes
+    setSelectedDate("")
+    if (selectedDate) {
+      setValue("date", "")
+    }
   }
 
   const renderStep = () => {
@@ -248,14 +282,29 @@ const GuestDonorView: React.FC = () => {
 
       case 2:
         return (
-          <div className="w-full h-full py-10 space-y-6">
-            <div className="grid grid-cols-9 gap-2">
-              {dates.map((date) => (
+          <div className="w-full h-full px-2 py-10 space-y-6">
+            <div className="mb-4 space-y-2">
+              <Label>Select Month</Label>
+              <Select defaultValue={currentMonth} onValueChange={handleMonthSelect}>
+                <SelectTrigger className="w-full bg-white text-[#591C1C]">
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month) => (
+                    <SelectItem key={month} value={month}>
+                      {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-5 gap-2 px-10 md:grid-cols-9">
+              {availableDates.map((date) => (
                 <Button
                   key={date}
                   variant={selectedDate === date ? "secondary" : "outline"}
                   className={`rounded-full p-2 aspect-square ${
-                    selectedDate === date ? 'bg-white' : 'bg-[#eddede] text-[#f06464]'
+                    selectedDate === date ? "bg-white" : "bg-[#eddede] text-[#f06464]"
                   }`}
                   onClick={() => handleDateSelect(date)}
                 >
@@ -273,7 +322,7 @@ const GuestDonorView: React.FC = () => {
                   }`}
                   onClick={() => handleTimeSelect(time)}
                 >
-                  {time}
+                  <span className="text-[10px] md:text-md">{time}</span>
                 </Button>
               ))}
             </div>
@@ -339,14 +388,14 @@ const GuestDonorView: React.FC = () => {
           {renderStep()}
         </form>
       </div>
-      <div className=" bg-[#F8EFEF] p-6 flex flex-col items-center justify-center gap-4">
+      <div className="bg-[#F8EFEF] p-6 flex flex-col items-center justify-center gap-4 col-span-2 md:col-span-1">
         <h2 className="text-[#591C1C] text-2xl">Welcome Back!</h2>
         <Button
           variant="outline"
           onClick={() => {
             window.location.href = '/login'
           }}
-          className="border-[#591C1C] text-[#591C1C] hover:bg-[#591C1C] hover:text-white"
+          className="border-[#591C1C] text-[#591C1C] hover:bg-[#591C1C] hover:text-white text-center"
         >
           Sign In
         </Button>

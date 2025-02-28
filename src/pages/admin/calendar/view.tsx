@@ -118,10 +118,10 @@ export default function HospitalCalendar(): JSX.Element {
     <div className="p-6 w-full h-full bg-[#F8EFEF] rounded-lg relative">
       <div className="flex items-center justify-between mb-8">
         <div className="flex flex-col items-start">
-          <div className="text-8xl font-bold text-[#4A1515]">{format(currentDate, "dd")}</div>
+          <div className="pt-10 text-2xl md:text-8xl font-bold text-[#4A1515]">{format(currentDate, "dd")}</div>
           <button
             onClick={() => (window.location.href = "/admin/events")}
-            className="mt-2 px-4 py-2 bg-pink-300 text-[#4A1515] rounded-lg hover:bg-pink-400 transition-colors"
+            className="text-sm md:text-lg md:text-md mt-2 px-4 py-2 bg-pink-300 text-[#4A1515] rounded-lg hover:bg-pink-400 transition-colors"
           >
             Manage Events
           </button>

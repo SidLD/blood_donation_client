@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Eye, EyeOff } from "lucide-react"
 import * as z from "zod"
+import { useNavigate } from "react-router-dom"
 
 interface Hospital {
   _id: string
@@ -48,6 +49,7 @@ export default function AdminDashboard() {
   const [isOpen, setIsOpen] = useState(false)
   const [editingHospital, setEditingHospital] = useState<Hospital | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const navigate = useNavigate()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,8 +68,10 @@ export default function AdminDashboard() {
         title: "Logged out",
         description: "You have been successfully logged out.",
       })
-      auth.clear()
-      window.location.href = "/login"
+      setTimeout(() => {
+        auth.clear()
+      }, 1000)
+      navigate('/');
     } catch (error) {}
   }
 

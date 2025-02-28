@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Search } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -172,9 +172,8 @@ export default function DonorsPage() {
             placeholder="Enter Donor ID, name, etc."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full max-w-md px-4 py-2 text-gray-800 placeholder-gray-500 rounded-full bg-white/80 backdrop-blur-sm"
+            className="w-full max-w-md px-6 py-2 text-gray-800 placeholder-gray-500 rounded-full bg-white/80 backdrop-blur-sm"
           />
-          <Search className="absolute w-5 h-5 text-gray-500 -translate-y-1/2 right-4 top-1/2" />
         </div>
 
         {/* Content Area */}

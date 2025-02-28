@@ -34,13 +34,13 @@ const HomeView: React.FC = () => {
         <div className="absolute bottom-24 right-[5%] z-20 flex flex-col items-end space-y-[-2rem]">
             <Button
               onClick={() => navigate("/login")}
-              className=" h-28  text-[2.2rem] font-semibold text-red-600 transition transform bg-white rounded-full shadow-lg w-[130%] hover:bg-white hover:scale-105"
+              className="w-[80%] h-28  text-[2.2rem] font-semibold text-red-600 transition transform bg-white rounded-full shadow-lg md:w-[130%] hover:bg-white hover:scale-105"
             >
               LOG IN
             </Button>
             <Button
               onClick={() => navigate("/register")}
-              className="h-28 px-12 text-[2.2rem] text-red-600 transition transform rounded-full shadow-lg w-[150%] bg-red-50 hover:bg-red-50 hover:scale-105"
+              className="w-[100%] h-28 px-12 text-[2.2rem] text-red-600 transition transform rounded-full shadow-lg md:w-[150%] bg-red-50 hover:bg-red-50 hover:scale-105"
             >
               REGISTER NOW
             </Button>
