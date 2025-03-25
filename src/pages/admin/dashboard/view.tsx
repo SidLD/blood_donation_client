@@ -220,7 +220,7 @@ export default function AdminDashboard() {
   return (
     <div className="bg-[#3D0000] p-8 lg:p-12 flex flex-col min-h-[600px] relative">
       <div className="flex items-center justify-between text-white/90">
-        <div className="flex justify-center ">
+        <div className="flex justify-center">
           <img
             width={80}
             src={logo || "/placeholder.svg"}
@@ -242,7 +242,7 @@ export default function AdminDashboard() {
 
                   </DialogTitle>
                 </DialogHeader>
-                <div className="mt-4">
+                <div className="mt-4 ">
                  <Button onClick={() => {
                       form.reset({
                         _id: '',
@@ -358,7 +358,7 @@ export default function AdminDashboard() {
                     </form>
                   </Form>
                 </div>
-                <div className="mt-6 max-h-[300px] overflow-auto">
+                <div className="mt-6 max-h-[150px] overflow-y-scroll">
                   <Table>
                     <TableHeader>
                       <TableRow className="border-b border-red-800">

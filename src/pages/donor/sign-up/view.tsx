@@ -110,7 +110,7 @@ const DonorSignUpView: React.FC = () => {
         </div>
         
         <div className='flex justify-center w-full'>
-          <div className="flex items-center justify-center gap-2 px-4 py-2 mb-8 rounded-lg w-fit bg-white/90">
+          <div className="flex items-center justify-center gap-1 px-4 py-2 mb-8 rounded-lg w-fit bg-white/90">
             <User className="w-5 h-5 text-[#3D0000]" />
             <span className="font-bold text-[#3D0000]">DONOR</span>
           </div>

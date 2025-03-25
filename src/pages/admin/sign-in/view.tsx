@@ -24,7 +24,7 @@ const loginSchema = z.object({
   username: z.string().min(2, {
     message: "Username must be at least 2 characters.",
   }),
-  license: z.string().min(5, {
+  license: z.string().min(3, {
     message: "License ID must be at least 5 characters.",
   }),
   password: z.string().min(5, {

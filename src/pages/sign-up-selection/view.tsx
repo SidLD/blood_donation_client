@@ -7,7 +7,7 @@ const SignUpSelectionView: React.FC = () => {
             <div className="z-20 flex items-center text-white/90">
                 <img width={60} src={logo} alt="logo" />
             </div>
-            <div className="items-center justify-center min-h-[25rem] p-6 ">
+            <div className="items-center justify-center lg:min-h-[25rem] p-6 ">
                 <h1 className="mb-8 text-2xl font-bold text-center text-white">
                 REGISTER TODAY
                 </h1>

@@ -34,7 +34,7 @@ const DoctorList: React.FC = () => {
   const handleUpdateStatus = async (status: "PENDING" | "APPROVED" | "REJECTED") => {
     try {
       if (selectedDoctor) {
-        const { data } = (await updateHospitalAdminStatus(selectedDoctor._id as string, { status })) as unknown as any
+        const  data  = (await updateHospitalAdminStatus(selectedDoctor._id as string, { status })) as unknown as any
         if(data.status == 200){
             toast({
                 title: "Success",

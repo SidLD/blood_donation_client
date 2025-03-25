@@ -129,8 +129,8 @@ export default function AppointmentForm() {
           <DatePicker date={selectedDate} setDate={setSelectedDate} />
 
           {/* Time Selector */}
-          <Select value={selectedTime} onValueChange={setSelectedTime}>
-            <SelectTrigger className="w-full">
+          <Select  value={selectedTime} onValueChange={setSelectedTime}>
+            <SelectTrigger className="w-full text-white">
               <SelectValue placeholder="Select time" />
             </SelectTrigger>
             <SelectContent>

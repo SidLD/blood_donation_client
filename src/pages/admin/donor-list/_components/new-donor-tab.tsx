@@ -144,7 +144,7 @@ export function NewDonorsTab({ donors, isLoading }: NewDonorsTabProps) {
 <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Send Email to {selectedDonor?.username}</DialogTitle>
+              <DialogTitle>Send Email to <span className='uppercase'>{selectedDonor?.username}</span></DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 py-4">
